@@ -335,6 +335,106 @@
           by hovering over the figure below.
         </p>
 
+        <!-- Interactive adaptive-autoencoder figure. Scene thumbnails (col 1)
+             and level buttons (col 2) line up as rows; the Ground Truth and
+             Reconstruction images (cols 3-4) span all rows. Behavior + image
+             sources live in script.js (currently placeholders). -->
+        <figure id="ae-figure" class="my-14">
+          <div class="overflow-x-auto">
+            <div class="grid min-w-[640px] grid-cols-[5rem_9rem_1fr_1fr] gap-3">
+              <!-- Column headers -->
+              <div class="ae-col-label col-start-1 row-start-1">Scene</div>
+              <div class="ae-col-label col-start-2 row-start-1">Level</div>
+              <div class="ae-col-label col-start-3 row-start-1">
+                Ground Truth
+              </div>
+              <div class="ae-col-label col-start-4 row-start-1">
+                Reconstruction
+              </div>
+
+              <!-- Scene thumbnails (column 1) -->
+              <button
+                type="button"
+                class="ae-thumb col-start-1 row-start-2 aspect-square"
+                data-scene="0"
+              >
+                <img alt="Scene 1 thumbnail" />
+              </button>
+              <button
+                type="button"
+                class="ae-thumb col-start-1 row-start-3 aspect-square"
+                data-scene="1"
+              >
+                <img alt="Scene 2 thumbnail" />
+              </button>
+              <button
+                type="button"
+                class="ae-thumb col-start-1 row-start-4 aspect-square"
+                data-scene="2"
+              >
+                <img alt="Scene 3 thumbnail" />
+              </button>
+              <button
+                type="button"
+                class="ae-thumb col-start-1 row-start-5 aspect-square"
+                data-scene="3"
+              >
+                <img alt="Scene 4 thumbnail" />
+              </button>
+
+              <!-- Level buttons (column 2) -->
+              <button
+                type="button"
+                class="ae-level col-start-2 row-start-2"
+                data-level="0"
+              >
+                <span class="ae-level-name">Level 0</span>
+                <span class="ae-level-tokens">256 Tokens</span>
+              </button>
+              <button
+                type="button"
+                class="ae-level col-start-2 row-start-3"
+                data-level="1"
+              >
+                <span class="ae-level-name">Level 1</span>
+                <span class="ae-level-tokens">64 Tokens</span>
+              </button>
+              <button
+                type="button"
+                class="ae-level col-start-2 row-start-4"
+                data-level="2"
+              >
+                <span class="ae-level-name">Level 2</span>
+                <span class="ae-level-tokens">16 Tokens</span>
+              </button>
+              <button
+                type="button"
+                class="ae-level col-start-2 row-start-5"
+                data-level="3"
+              >
+                <span class="ae-level-name">Level 3</span>
+                <span class="ae-level-tokens">4 Tokens</span>
+              </button>
+
+              <!-- Large Ground Truth + Reconstruction images (cols 3-4) -->
+              <img
+                id="ae-gt"
+                class="ae-image col-start-3 row-start-2 row-span-4"
+                alt="Ground truth"
+              />
+              <img
+                id="ae-recon"
+                class="ae-image col-start-4 row-start-2 row-span-4"
+                alt="Reconstruction"
+              />
+            </div>
+          </div>
+          <figcaption class="mt-3 text-sm text-slate-500">
+            Select a scene and level to see the adaptive autoencoder's
+            reconstruction at various token budgets.
+          </figcaption>
+        </figure>
+
         <h3 class="mt-8 text-xl font-semibold text-slate-900">
           Coarse-to-Fine Rollout
         </h3>

@@ -173,3 +173,83 @@
   transform: translateY(-50%);
   white-space: nowrap;
 }
+
+/* ---- Interactive adaptive-autoencoder figure ---- */
+.ae-col-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Shared look for the clickable scene thumbnails and level buttons. */
+.ae-thumb,
+.ae-level {
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+/* Hover affordance: border picks up the brand blue. */
+.ae-thumb:hover,
+.ae-level:hover {
+  border-color: var(--brand-500);
+}
+
+/* Selected state: brand border plus a soft ring to distinguish from hover. */
+.ae-thumb.is-selected,
+.ae-level.is-selected {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.18);
+}
+
+.ae-thumb {
+  padding: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+.ae-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ae-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+}
+.ae-level-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+.ae-level-tokens {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+.ae-level.is-selected .ae-level-name {
+  color: var(--brand-700);
+}
+
+/* The two large Ground Truth / Reconstruction images. */
+.ae-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f1f5f9;
+}

@@ -208,3 +208,94 @@ function fallbackCopy(text) {
   draw(0);
   requestAnimationFrame(frame);
 })();
+
+// ---- Interactive adaptive-autoencoder figure ----
+// Click a scene to choose the Ground Truth/Reconstruction pair; click a level
+// to lock the reconstruction's token count, or hover a level to preview it.
+(function adaptiveAutoencoderFigure() {
+  const figure = document.getElementById("ae-figure");
+  if (!figure) return;
+
+  const LEVELS = [
+    { level: 0, tokens: 256 },
+    { level: 1, tokens: 64 },
+    { level: 2, tokens: 16 },
+    { level: 3, tokens: 4 },
+  ];
+
+  // --- Image sources --------------------------------------------------------
+  // Placeholders for now. To use the real images later, replace the body of
+  // assetUrl() with the actual paths, e.g.:
+  //   if (kind === "thumb" || kind === "gt")
+  //     return `images/scene-${scene}/ground-truth.jpg`;
+  //   return `images/scene-${scene}/recon-level-${level}.jpg`;
+  const PALETTE = ["#0ea5e9", "#6366f1", "#10b981", "#f59e0b"];
+  function placeholder(label, bg) {
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">` +
+      `<rect width="100%" height="100%" fill="${bg}"/>` +
+      `<text x="50%" y="50%" font-family="Inter, sans-serif" font-size="26" ` +
+      `fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${label}</text>` +
+      `</svg>`;
+    return "data:image/svg+xml," + encodeURIComponent(svg);
+  }
+  function assetUrl(kind, scene, level) {
+    const bg = PALETTE[scene % PALETTE.length];
+    if (kind === "thumb") return placeholder(`Scene ${scene + 1}`, bg);
+    if (kind === "gt") return placeholder(`Scene ${scene + 1} — GT`, bg);
+    return placeholder(
+      `Scene ${scene + 1} — L${level} (${LEVELS[level].tokens})`,
+      bg,
+    );
+  }
+
+  // --- Elements + state -----------------------------------------------------
+  const thumbs = Array.from(figure.querySelectorAll(".ae-thumb"));
+  const levels = Array.from(figure.querySelectorAll(".ae-level"));
+  const gtImg = figure.querySelector("#ae-gt");
+  const reconImg = figure.querySelector("#ae-recon");
+
+  let selectedScene = 0;
+  let selectedLevel = 0;
+
+  // Render both images for a given (scene, level). GT depends only on the
+  // scene; the reconstruction depends on both.
+  const render = (scene, level) => {
+    gtImg.src = assetUrl("gt", scene);
+    reconImg.src = assetUrl("recon", scene, level);
+  };
+  const markSelected = (list, idx) =>
+    list.forEach((el, i) => el.classList.toggle("is-selected", i === idx));
+
+  // Scene thumbnails: load once; click selects, hover previews.
+  thumbs.forEach((btn, i) => {
+    btn.querySelector("img").src = assetUrl("thumb", i);
+    btn.addEventListener("click", () => {
+      selectedScene = i;
+      markSelected(thumbs, i);
+      render(selectedScene, selectedLevel);
+    });
+    btn.addEventListener("mouseenter", () => render(i, selectedLevel));
+    btn.addEventListener("mouseleave", () =>
+      render(selectedScene, selectedLevel),
+    );
+  });
+
+  // Level buttons: click locks the level; hover previews it.
+  levels.forEach((btn, i) => {
+    btn.addEventListener("click", () => {
+      selectedLevel = i;
+      markSelected(levels, i);
+      render(selectedScene, selectedLevel);
+    });
+    btn.addEventListener("mouseenter", () => render(selectedScene, i));
+    btn.addEventListener("mouseleave", () =>
+      render(selectedScene, selectedLevel),
+    );
+  });
+
+  // Initial state.
+  markSelected(thumbs, selectedScene);
+  markSelected(levels, selectedLevel);
+  render(selectedScene, selectedLevel);
+})();
