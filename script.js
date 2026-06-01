@@ -216,37 +216,23 @@ function fallbackCopy(text) {
   const figure = document.getElementById("ae-figure");
   if (!figure) return;
 
-  const LEVELS = [
-    { level: 0, tokens: 256 },
-    { level: 1, tokens: 64 },
-    { level: 2, tokens: 16 },
-    { level: 3, tokens: 4 },
-  ];
-
   // --- Image sources --------------------------------------------------------
-  // Placeholders for now. To use the real images later, replace the body of
-  // assetUrl() with the actual paths, e.g.:
-  //   if (kind === "thumb" || kind === "gt")
-  //     return `images/scene-${scene}/ground-truth.jpg`;
-  //   return `images/scene-${scene}/recon-level-${level}.jpg`;
-  const PALETTE = ["#0ea5e9", "#6366f1", "#10b981", "#f59e0b"];
-  function placeholder(label, bg) {
-    const svg =
-      `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">` +
-      `<rect width="100%" height="100%" fill="${bg}"/>` +
-      `<text x="50%" y="50%" font-family="Inter, sans-serif" font-size="26" ` +
-      `fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${label}</text>` +
-      `</svg>`;
-    return "data:image/svg+xml," + encodeURIComponent(svg);
-  }
+  // One folder per scene under autoencoder/. Each holds gt.png plus, for both
+  // the "adaptive" and "cascaded" variants, loopcraft_autoencoder[_cascaded]_
+  // level{0-3}.png reconstructions.
+  const SCENE_DIRS = [
+    "000-653_f0861",
+    "001-480_f0621",
+    "002-032_f0676",
+    "002-481_f0164",
+  ];
+  const variantSelect = figure.querySelector("#ae-variant");
+
   function assetUrl(kind, scene, level) {
-    const bg = PALETTE[scene % PALETTE.length];
-    if (kind === "thumb") return placeholder(`Scene ${scene + 1}`, bg);
-    if (kind === "gt") return placeholder(`Scene ${scene + 1} — GT`, bg);
-    return placeholder(
-      `Scene ${scene + 1} — L${level} (${LEVELS[level].tokens})`,
-      bg,
-    );
+    const dir = `autoencoder/${SCENE_DIRS[scene]}`;
+    if (kind === "thumb" || kind === "gt") return `${dir}/gt.png`;
+    const variant = variantSelect.value === "cascaded" ? "_cascaded" : "";
+    return `${dir}/loopcraft_autoencoder${variant}_level${level}.png`;
   }
 
   // --- Elements + state -----------------------------------------------------
@@ -293,6 +279,11 @@ function fallbackCopy(text) {
       render(selectedScene, selectedLevel),
     );
   });
+
+  // Variant dropdown (adaptive vs. cascaded): re-render the reconstruction.
+  variantSelect.addEventListener("change", () =>
+    render(selectedScene, selectedLevel),
+  );
 
   // Initial state.
   markSelected(thumbs, selectedScene);

@@ -329,17 +329,16 @@
         </h3>
         <p class="mt-3 leading-relaxed text-slate-700">
           The adaptive autoencoder creates a multi-resolution latent space where
-          level $\ell$ has a token grid of $\frac{H}{2^\ell} \times
-          \frac{W}{2^\ell}$ (by convention, $\ell = 0$ is the finest level, and
-          $\ell = n$ is the coarsest level). Visualize the adaptive latent space
-          by hovering over the figure below.
+          level $\ell$ corresponds to a grid of $\frac{H}{2^\ell} \times
+          \frac{W}{2^\ell}$ tokens. Visualize the adaptive latent space by
+          interacting with the figure below.
         </p>
 
         <!-- Interactive adaptive-autoencoder figure. Scene thumbnails (col 1)
              and level buttons (col 2) line up as rows; the Ground Truth and
              Reconstruction images (cols 3-4) span all rows. Behavior + image
              sources live in script.js (currently placeholders). -->
-        <figure id="ae-figure" class="my-14">
+        <figure id="ae-figure" class="my-10">
           <div class="overflow-x-auto">
             <div class="grid min-w-[640px] grid-cols-[5rem_9rem_1fr_1fr] gap-3">
               <!-- Column headers -->
@@ -430,10 +429,26 @@
             </div>
           </div>
           <figcaption class="mt-3 text-sm text-slate-500">
-            Select a scene and level to see the adaptive autoencoder's
-            reconstruction at various token budgets.
+            Select a scene and level to see
+            <select
+              id="ae-variant"
+              class="ae-select"
+              aria-label="Autoencoder variant"
+            >
+              <option value="adaptive">an adaptive</option>
+              <option value="cascaded">a cascaded</option>
+            </select>
+            autoencoder's reconstruction at various token budgets.
           </figcaption>
         </figure>
+
+        <p class="mt-3 leading-relaxed text-slate-700">
+          We compare our adaptive autoencoder to a "cascaded" equivalent, where
+          the coarser latents are downscaled (mean-pooled) versions of the
+          finest latents. The "cascaded" equivalent simulates what a cascaded
+          diffusion model sees; adaptive latents provide much better
+          reconstructions given small token budgets.
+        </p>
 
         <h3 class="mt-8 text-xl font-semibold text-slate-900">
           Coarse-to-Fine Rollout
