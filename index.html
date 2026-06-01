@@ -256,8 +256,7 @@
           compute on long-term consistency of less perceptually relevant
           details. We validate this approach using a custom long-horizon
           Minecraft dataset, where it produces substantially more consistent
-          rollouts compared to strong baselines. We hope this perspective opens
-          new opportunities for long-term consistent video generation.
+          rollouts compared to strong baselines.
         </p>
       </section>
 
@@ -643,11 +642,58 @@
           veritatis et quasi architecto beatae vitae dicta sunt explicabo.
         </p>
 
-        <!-- Coarse-to-fine rollout decoration. Filmstrip of the frames in
-             strategies/millivid.json scrolling leftward; styles scoped under
-             .rollout-anim, script in script.js. -->
+        <!-- Coarse-to-fine rollout animation. The grid (from
+             strategies/millivid.json) scrolls leftward while its cells morph
+             through the rollout's frames; styles scoped under .rollout-anim,
+             script in script.js. Axes/labels mirror the MILLIVID decoration. -->
         <figure class="rollout-anim my-8" aria-hidden="true">
-          <div class="rollout-box"><canvas id="rollout-screen"></canvas></div>
+          <div class="figure">
+            <div class="rollout-box"><canvas id="rollout-screen"></canvas></div>
+
+            <svg class="axes" width="884" height="112" viewBox="0 0 884 112">
+              <defs>
+                <marker
+                  id="rollout-arrow"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="0"
+                  refY="3"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path d="M0,0 L6,3 L0,6 Z" fill="var(--axis)" />
+                </marker>
+              </defs>
+              <!-- y-axis: detail (points up) -->
+              <line
+                x1="39"
+                y1="72"
+                x2="39"
+                y2="12"
+                stroke="var(--axis)"
+                stroke-width="1"
+                marker-end="url(#rollout-arrow)"
+              />
+              <!-- x-axis: frame index (points right) -->
+              <line
+                x1="44"
+                y1="77"
+                x2="824"
+                y2="77"
+                stroke="var(--axis)"
+                stroke-width="1"
+                marker-end="url(#rollout-arrow)"
+              />
+            </svg>
+
+            <div class="axis-title detail">Detail</div>
+            <div class="axis-title frame">Frame Index</div>
+
+            <!-- row labels: top row -> ×256, bottom row -> ×16 -->
+            <div class="row-label" style="top: 20px">&#215;256</div>
+            <div class="row-label" style="top: 40px">&#215;64</div>
+            <div class="row-label" style="top: 60px">&#215;16</div>
+          </div>
         </figure>
       </section>
 

@@ -211,14 +211,15 @@ function fallbackCopy(text) {
 
 // ---- Coarse-to-fine rollout animation ----
 // A single grid (one frame of strategies/millivid.json, rows x cols of 0/1/2)
-// whose cell colours morph through the rollout's time frames while the whole
-// grid drifts leftward. Only the right-most N columns ever hold a denoised
-// (value 2 / orange) token; one full pass through the frames is a "cycle". Over
-// each cycle the grid scrolls left by exactly N columns, then the content is
-// shifted right by N and the frames replay -- so the grid lands back at the same
-// X position every cycle and the context flows seamlessly across the reset, with
-// a fresh denoising front appearing on the right. Cells are coloured by value:
-// 0 -> white, 1 -> blue (context), 2 -> orange (denoised).
+// whose generation front advances through the rollout's time frames while the
+// whole grid drifts leftward. Each row is coloured by its front: every column
+// at or left of the right-most generated (value 1 or 2) cell is "fixed" / grey
+// (already-generated frames, extending off the left edge); columns to the right
+// are white "future" frames. Only the right-most N columns ever get generated;
+// one full pass through the frames is a "cycle". Over each cycle the grid
+// scrolls left by exactly N columns, then the content is shifted right by N and
+// the frames replay -- so the grid lands back at the same X position every cycle
+// and the fixed region flows seamlessly across the reset.
 (function rolloutAnimation() {
   const canvas = document.getElementById("rollout-screen");
   if (!canvas) return;
@@ -254,14 +255,36 @@ function fallbackCopy(text) {
 
     const VISIBLE_COLS = COLS + 2 * MARGIN; // window: grid + one margin each side
 
+    // First frame in which each cell becomes denoised (orange / value 2), or
+    // Infinity if never. Once the denoising front has passed over a cell it
+    // stays "fixed" / grey for the rest of the cycle (unless it is context).
+    const firstOrange = [];
+    for (let r = 0; r < ROWS; r++) firstOrange.push(new Array(COLS).fill(Infinity));
+    frames.forEach((f, fi) => {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (f[r][c] === 2 && fi < firstOrange[r][c]) firstOrange[r][c] = fi;
+        }
+      }
+    });
+
+    // Initial "fixed" seed: at the first frame everything to the left of the
+    // left-most orange column counts as already generated.
+    let initialFixed = COLS;
+    frames[0].forEach((row) =>
+      row.forEach((v, c) => {
+        if (v === 2 && c < initialFixed) initialFixed = c;
+      }),
+    );
+
     // ---- Sizing (mirrors the MILLIVID animation) ----
     const css = getComputedStyle(root);
     const CELL = parseInt(css.getPropertyValue("--cell"));
     const COLOR_LINE = css.getPropertyValue("--grid-line").trim();
-    const COLOR_BG = css.getPropertyValue("--cell-bg").trim();
-    const COLOR_CTX = css.getPropertyValue("--ctx-color").trim();
-    const COLOR_GEN = css.getPropertyValue("--gen-color").trim();
-    const VALUE_COLORS = [COLOR_BG, COLOR_CTX, COLOR_GEN];
+    const COLOR_BG = css.getPropertyValue("--cell-bg").trim(); // future (white)
+    const COLOR_FIXED = css.getPropertyValue("--fixed-color").trim(); // generated
+    const COLOR_CTX = css.getPropertyValue("--ctx-color").trim(); // value 1
+    const COLOR_GEN = css.getPropertyValue("--gen-color").trim(); // value 2
 
     const ctx = canvas.getContext("2d");
     const cssW = VISIBLE_COLS * CELL;
@@ -273,14 +296,22 @@ function fallbackCopy(text) {
     canvas.height = Math.round(cssH * dpr);
     ctx.scale(dpr, dpr);
 
-    // Colour of grid-column gcol (gcol 0 is the left margin). Columns outside the
-    // grid are white, so the context scrolls off the left and a white "future"
-    // (then the next cycle's denoising) flows in on the right. No wrapping: the
-    // seamless loop comes from the per-cycle scroll + reset, not from tiling.
+    // Colour of grid-column gcol (gcol 0 is the left margin). Context (value 1)
+    // and denoised (value 2) cells take priority and render blue / orange. Any
+    // other cell is "fixed" / grey if it is in the initial seed (left of the
+    // first frame's left-most orange, including off-grid columns) or the
+    // denoising front has already passed over it this cycle; otherwise it is a
+    // white "future" frame. No wrapping: the seamless loop comes from the
+    // per-cycle scroll + reset, not from tiling.
     function cellColor(gcol, row, frameIdx) {
       const d = gcol - MARGIN;
-      const value = d >= 0 && d < COLS ? frames[frameIdx][row][d] : 0;
-      return VALUE_COLORS[value] || COLOR_BG;
+      const inGrid = d >= 0 && d < COLS;
+      const value = inGrid ? frames[frameIdx][row][d] : 0;
+      if (value === 1) return COLOR_CTX; // blue (context) -- takes priority
+      if (value === 2) return COLOR_GEN; // orange (denoised)
+      const fixed =
+        d < initialFixed || (inGrid && firstOrange[row][d] <= frameIdx);
+      return fixed ? COLOR_FIXED : COLOR_BG;
     }
 
     function draw(offsetPx, frameIdx) {

@@ -196,15 +196,27 @@ html {
  * Variables live on the container so script.js can read them (same pattern as
  * .millivid-anim). Colours/grid intentionally match the MILLIVID decoration. */
 .rollout-anim {
-  --cell: 16px; /* 39 cols * 16px = 624px, fits the prose column */
+  --cell: 20px; /* 39 cols * 20px = 780px, fits the prose column */
   --rows: 3;
   --grid-line: #000000;
-  --cell-bg: #ffffff; /* value 0 (none) */
+  --cell-bg: #ffffff; /* not-yet-generated (future) frames */
+  --fixed-color: #585858; /* fixed / already-generated frames */
   --ctx-color: #008cff; /* value 1 (context) */
   --gen-color: #ffa602; /* value 2 (denoised) */
   --box-outline: #000000;
+  --axis: #000000;
+  --label: #000000;
   display: flex;
   justify-content: center;
+  font-family: "Manrope", system-ui, sans-serif;
+}
+
+/* Figure box: 44 + 784 + 56 = 884 wide, 8 + 64 + 40 = 112 tall. The canvas is
+ * 780 x 60 (39 cols x 3 rows at --cell 20px) plus the 2px box border. */
+.rollout-anim .figure {
+  position: relative;
+  display: inline-block;
+  padding: 8px 56px 40px 44px; /* top right bottom left */
 }
 .rollout-anim .rollout-box {
   border: 2px solid var(--box-outline);
@@ -214,6 +226,39 @@ html {
 }
 .rollout-anim canvas {
   display: block;
+}
+.rollout-anim .axes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.rollout-anim .axis-title {
+  position: absolute;
+  color: var(--label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.rollout-anim .axis-title.frame {
+  left: 44px; /* left-aligned with the x-axis start */
+  top: 79px;
+}
+.rollout-anim .axis-title.detail {
+  left: 18px; /* left of the y-axis */
+  top: 72px; /* bottom-aligned with the y-axis start */
+  transform-origin: top left;
+  transform: rotate(-90deg);
+}
+.rollout-anim .row-label {
+  position: absolute;
+  left: 832px; /* just right of the box (box right edge = 828) */
+  color: var(--label);
+  font-size: 13px;
+  font-weight: 500;
+  transform: translateY(-50%);
+  white-space: nowrap;
 }
 
 /* ---- Interactive adaptive-autoencoder figure ---- */
