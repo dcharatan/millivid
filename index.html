@@ -642,6 +642,13 @@
           laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
           veritatis et quasi architecto beatae vitae dicta sunt explicabo.
         </p>
+
+        <!-- Coarse-to-fine rollout decoration. Filmstrip of the frames in
+             strategies/millivid.json scrolling leftward; styles scoped under
+             .rollout-anim, script in script.js. -->
+        <figure class="rollout-anim my-8" aria-hidden="true">
+          <div class="rollout-box"><canvas id="rollout-screen"></canvas></div>
+        </figure>
       </section>
 
       <!-- ===================== Results ===================== -->
@@ -711,6 +718,8 @@
       </section>
     </main>
 
+    <!-- Rollout animation data (script-loaded so it works on file:// too). -->
+    <script src="strategies/millivid.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

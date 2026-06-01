@@ -209,6 +209,134 @@ function fallbackCopy(text) {
   requestAnimationFrame(frame);
 })();
 
+// ---- Coarse-to-fine rollout animation ----
+// A single grid (one frame of strategies/millivid.json, rows x cols of 0/1/2)
+// whose cell colours morph through the rollout's time frames while the whole
+// grid drifts leftward. Only the right-most N columns ever hold a denoised
+// (value 2 / orange) token; one full pass through the frames is a "cycle". Over
+// each cycle the grid scrolls left by exactly N columns, then the content is
+// shifted right by N and the frames replay -- so the grid lands back at the same
+// X position every cycle and the context flows seamlessly across the reset, with
+// a fresh denoising front appearing on the right. Cells are coloured by value:
+// 0 -> white, 1 -> blue (context), 2 -> orange (denoised).
+(function rolloutAnimation() {
+  const canvas = document.getElementById("rollout-screen");
+  if (!canvas) return;
+  const root = canvas.closest(".rollout-anim");
+  if (!root) return;
+
+  // The grid data is loaded via <script src="strategies/millivid.js"> (which
+  // registers it on window.ROLLOUT_STRATEGIES). Using a script tag instead of
+  // fetch() means this works on file:// as well as over http.
+  const frames =
+    window.ROLLOUT_STRATEGIES && window.ROLLOUT_STRATEGIES.millivid;
+  if (!frames) return;
+  start(frames);
+
+  function start(frames) {
+    const N_FRAMES = frames.length; // number of rollout (time) frames
+    const ROWS = frames[0].length;
+    const COLS = frames[0][0].length;
+    const MARGIN = 1; // white column on each side of the grid
+
+    // N = number of columns that ever hold a denoised (value 2) token. These are
+    // the right-most columns; the grid scrolls left by N columns each cycle and
+    // is shifted right by N at the reset, so it returns to the same X position.
+    const denoisedCols = new Set();
+    frames.forEach((f) =>
+      f.forEach((row) =>
+        row.forEach((v, c) => {
+          if (v === 2) denoisedCols.add(c);
+        }),
+      ),
+    );
+    const N = denoisedCols.size;
+
+    const VISIBLE_COLS = COLS + 2 * MARGIN; // window: grid + one margin each side
+
+    // ---- Sizing (mirrors the MILLIVID animation) ----
+    const css = getComputedStyle(root);
+    const CELL = parseInt(css.getPropertyValue("--cell"));
+    const COLOR_LINE = css.getPropertyValue("--grid-line").trim();
+    const COLOR_BG = css.getPropertyValue("--cell-bg").trim();
+    const COLOR_CTX = css.getPropertyValue("--ctx-color").trim();
+    const COLOR_GEN = css.getPropertyValue("--gen-color").trim();
+    const VALUE_COLORS = [COLOR_BG, COLOR_CTX, COLOR_GEN];
+
+    const ctx = canvas.getContext("2d");
+    const cssW = VISIBLE_COLS * CELL;
+    const cssH = ROWS * CELL;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.scale(dpr, dpr);
+
+    // Colour of grid-column gcol (gcol 0 is the left margin). Columns outside the
+    // grid are white, so the context scrolls off the left and a white "future"
+    // (then the next cycle's denoising) flows in on the right. No wrapping: the
+    // seamless loop comes from the per-cycle scroll + reset, not from tiling.
+    function cellColor(gcol, row, frameIdx) {
+      const d = gcol - MARGIN;
+      const value = d >= 0 && d < COLS ? frames[frameIdx][row][d] : 0;
+      return VALUE_COLORS[value] || COLOR_BG;
+    }
+
+    function draw(offsetPx, frameIdx) {
+      // Snap the scroll offset to the device-pixel grid so cells and separators
+      // land on whole pixels and move in lockstep (no shimmer); same trick as
+      // the MILLIVID animation.
+      offsetPx = Math.round(offsetPx * dpr) / dpr;
+      ctx.clearRect(0, 0, cssW, cssH);
+      const startCol = Math.floor(offsetPx / CELL) - 1;
+      const endCol = startCol + VISIBLE_COLS + 2;
+
+      // 1) Fill cells by value for the current frame.
+      for (let gcol = startCol; gcol <= endCol; gcol++) {
+        const x = gcol * CELL - offsetPx;
+        if (x > cssW || x + CELL < 0) continue;
+        for (let r = 0; r < ROWS; r++) {
+          ctx.fillStyle = cellColor(gcol, r, frameIdx);
+          ctx.fillRect(x, r * CELL, CELL, CELL);
+        }
+      }
+
+      // 2) Thin black separators (1 device pixel), drawn across the whole grid.
+      ctx.fillStyle = COLOR_LINE;
+      const lineW = 1 / dpr;
+      for (let gcol = startCol; gcol <= endCol + 1; gcol++) {
+        const x = gcol * CELL - offsetPx;
+        if (x <= 0 || x >= cssW) continue;
+        ctx.fillRect(x, 0, lineW, cssH);
+      }
+      for (let r = 1; r < ROWS; r++) {
+        ctx.fillRect(0, r * CELL, cssW, lineW);
+      }
+    }
+
+    // ---- One cycle: morph through the frames while scrolling left by N cols ----
+    const FRAME_MS = 260; // time each rollout frame is shown before advancing
+    const CYCLE_MS = N_FRAMES * FRAME_MS; // one full pass through the frames
+    let startTs = null;
+
+    function frame(ts) {
+      if (startTs === null) startTs = ts;
+      const tau = (ts - startTs) % CYCLE_MS; // time within the current cycle
+      const frac = tau / CYCLE_MS; // 0 -> 1 across the cycle
+      const frameIdx = Math.min(N_FRAMES - 1, Math.floor(tau / FRAME_MS));
+      // Scroll left by exactly N columns over the cycle; the reset back to 0
+      // coincides with the frames restarting (= shift content right by N).
+      const offsetPx = frac * N * CELL;
+      draw(offsetPx, frameIdx);
+      requestAnimationFrame(frame);
+    }
+
+    draw(0, 0);
+    requestAnimationFrame(frame);
+  }
+})();
+
 // ---- Interactive adaptive-autoencoder figure ----
 // Click a scene to choose the Ground Truth/Reconstruction pair; click a level
 // to lock the reconstruction's token count, or hover a level to preview it.

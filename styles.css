@@ -191,6 +191,31 @@ html {
   white-space: nowrap;
 }
 
+/* ---- Coarse-to-fine rollout animation ----
+ * A filmstrip of the frames in strategies/millivid.json scrolling leftward.
+ * Variables live on the container so script.js can read them (same pattern as
+ * .millivid-anim). Colours/grid intentionally match the MILLIVID decoration. */
+.rollout-anim {
+  --cell: 16px; /* 39 cols * 16px = 624px, fits the prose column */
+  --rows: 3;
+  --grid-line: #000000;
+  --cell-bg: #ffffff; /* value 0 (none) */
+  --ctx-color: #008cff; /* value 1 (context) */
+  --gen-color: #ffa602; /* value 2 (denoised) */
+  --box-outline: #000000;
+  display: flex;
+  justify-content: center;
+}
+.rollout-anim .rollout-box {
+  border: 2px solid var(--box-outline);
+  background: var(--cell-bg);
+  line-height: 0;
+  overflow: hidden;
+}
+.rollout-anim canvas {
+  display: block;
+}
+
 /* ---- Interactive adaptive-autoencoder figure ---- */
 .ae-col-label {
   font-size: 0.75rem;
