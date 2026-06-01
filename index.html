@@ -648,7 +648,9 @@
              script in script.js. Axes/labels mirror the MILLIVID decoration. -->
         <figure class="rollout-anim my-8" aria-hidden="true">
           <div class="figure">
-            <div class="rollout-box"><canvas id="rollout-screen"></canvas></div>
+            <div class="rollout-box">
+              <canvas id="rollout-screen" data-strategy="millivid"></canvas>
+            </div>
 
             <svg class="axes" width="884" height="112" viewBox="0 0 884 112">
               <defs>
@@ -693,6 +695,112 @@
             <div class="row-label" style="top: 20px">&#215;256</div>
             <div class="row-label" style="top: 40px">&#215;64</div>
             <div class="row-label" style="top: 60px">&#215;16</div>
+          </div>
+
+          <div class="rollout-legend">
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--ctx-color)"></span>
+              Context
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--gen-color)"></span>
+              Denoised
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--fixed-color)"></span>
+              Fixed
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--cell-bg)"></span>
+              Pending
+            </span>
+          </div>
+        </figure>
+
+        <p class="mt-3 leading-relaxed text-slate-700">
+          Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse
+          quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo
+          voluptas nulla pariatur. By contrast, the FramePack baseline fixes a
+          single context window and generates one frame at a time, so its
+          generation front advances without revisiting coarser scales.
+        </p>
+
+        <!-- FramePack rollout animation (strategies/framepack.json). Same style
+             as the MilliVid one above. The 22-col grid is padded (9 grey cols
+             left, 8 white right) to 39 visible cols so the box matches the
+             MilliVid box width; axes/labels therefore use the same geometry. -->
+        <figure class="rollout-anim my-8" aria-hidden="true">
+          <div class="figure">
+            <div class="rollout-box">
+              <canvas
+                data-strategy="framepack"
+                data-pad-left="9"
+                data-pad-right="8"
+              ></canvas>
+            </div>
+
+            <svg class="axes" width="884" height="112" viewBox="0 0 884 112">
+              <defs>
+                <marker
+                  id="rollout-arrow-fp"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="0"
+                  refY="3"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path d="M0,0 L6,3 L0,6 Z" fill="var(--axis)" />
+                </marker>
+              </defs>
+              <!-- y-axis: detail (points up) -->
+              <line
+                x1="39"
+                y1="72"
+                x2="39"
+                y2="12"
+                stroke="var(--axis)"
+                stroke-width="1"
+                marker-end="url(#rollout-arrow-fp)"
+              />
+              <!-- x-axis: frame index (points right) -->
+              <line
+                x1="44"
+                y1="77"
+                x2="824"
+                y2="77"
+                stroke="var(--axis)"
+                stroke-width="1"
+                marker-end="url(#rollout-arrow-fp)"
+              />
+            </svg>
+
+            <div class="axis-title detail">Detail</div>
+            <div class="axis-title frame">Frame Index</div>
+
+            <!-- row labels: top row -> ×256, bottom row -> ×16 -->
+            <div class="row-label" style="top: 20px">&#215;256</div>
+            <div class="row-label" style="top: 40px">&#215;64</div>
+            <div class="row-label" style="top: 60px">&#215;16</div>
+          </div>
+
+          <div class="rollout-legend">
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--ctx-color)"></span>
+              Context
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--gen-color)"></span>
+              Denoised
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--fixed-color)"></span>
+              Fixed
+            </span>
+            <span class="rollout-legend-item">
+              <span class="rollout-swatch" style="background: var(--cell-bg)"></span>
+              Pending
+            </span>
           </div>
         </figure>
       </section>
@@ -766,6 +874,7 @@
 
     <!-- Rollout animation data (script-loaded so it works on file:// too). -->
     <script src="strategies/millivid.js"></script>
+    <script src="strategies/framepack.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

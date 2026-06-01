@@ -220,25 +220,32 @@ function fallbackCopy(text) {
 // scrolls left by exactly N columns, then the content is shifted right by N and
 // the frames replay -- so the grid lands back at the same X position every cycle
 // and the fixed region flows seamlessly across the reset.
-(function rolloutAnimation() {
-  const canvas = document.getElementById("rollout-screen");
-  if (!canvas) return;
-  const root = canvas.closest(".rollout-anim");
-  if (!root) return;
+(function rolloutAnimations() {
+  // Each <canvas data-strategy="..."> in a .rollout-anim is driven by the data
+  // registered on window.ROLLOUT_STRATEGIES by the matching strategy script
+  // (e.g. strategies/millivid.js). Using script tags instead of fetch() means
+  // this works on file:// as well as over http.
+  const canvases = document.querySelectorAll(".rollout-anim canvas[data-strategy]");
+  canvases.forEach((canvas) => {
+    const root = canvas.closest(".rollout-anim");
+    const frames =
+      window.ROLLOUT_STRATEGIES &&
+      window.ROLLOUT_STRATEGIES[canvas.dataset.strategy];
+    if (root && frames) start(canvas, root, frames);
+  });
 
-  // The grid data is loaded via <script src="strategies/millivid.js"> (which
-  // registers it on window.ROLLOUT_STRATEGIES). Using a script tag instead of
-  // fetch() means this works on file:// as well as over http.
-  const frames =
-    window.ROLLOUT_STRATEGIES && window.ROLLOUT_STRATEGIES.millivid;
-  if (!frames) return;
-  start(frames);
-
-  function start(frames) {
+  function start(canvas, root, frames) {
     const N_FRAMES = frames.length; // number of rollout (time) frames
     const ROWS = frames[0].length;
     const COLS = frames[0][0].length;
-    const MARGIN = 1; // white column on each side of the grid
+
+    // Padding columns on each side (default 1). Left padding renders grey (it is
+    // left of the fixed seed) and right padding white (future), so a narrower
+    // grid can be widened to match another by padding it. data-pad-left /
+    // data-pad-right set these (e.g. to match the MilliVid box width).
+    const padOf = (v) => (v !== undefined && v !== "" ? parseInt(v, 10) : 1);
+    const PAD_LEFT = padOf(canvas.dataset.padLeft);
+    const PAD_RIGHT = padOf(canvas.dataset.padRight);
 
     // N = number of columns that ever hold a denoised (value 2) token. These are
     // the right-most columns; the grid scrolls left by N columns each cycle and
@@ -253,7 +260,7 @@ function fallbackCopy(text) {
     );
     const N = denoisedCols.size;
 
-    const VISIBLE_COLS = COLS + 2 * MARGIN; // window: grid + one margin each side
+    const VISIBLE_COLS = PAD_LEFT + COLS + PAD_RIGHT; // window: padding + grid
 
     // First frame in which each cell becomes denoised (orange / value 2), or
     // Infinity if never. Once the denoising front has passed over a cell it
@@ -304,7 +311,7 @@ function fallbackCopy(text) {
     // white "future" frame. No wrapping: the seamless loop comes from the
     // per-cycle scroll + reset, not from tiling.
     function cellColor(gcol, row, frameIdx) {
-      const d = gcol - MARGIN;
+      const d = gcol - PAD_LEFT;
       const inGrid = d >= 0 && d < COLS;
       const value = inGrid ? frames[frameIdx][row][d] : 0;
       if (value === 1) return COLOR_CTX; // blue (context) -- takes priority
