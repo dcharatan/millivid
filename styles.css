@@ -21,6 +21,23 @@
   text-wrap: balance;
 }
 
+/* Smoothly animate in-page anchor jumps. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Inline body-text links (e.g. the in-page jumps in the Method intro).
+ * Keeps the surrounding text color; the underline is the only affordance. */
+.text-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 150ms ease;
+}
+.text-link:hover {
+  text-decoration-color: var(--brand-500);
+}
+
 /* ---- Reusable component classes ---- */
 
 /* Section headings with an accent underline. */
