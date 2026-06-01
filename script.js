@@ -156,6 +156,11 @@ function fallbackCopy(text) {
 
   // Draw the sliding strip at a fractional pixel offset.
   function draw(offsetPx) {
+    // Snap the scroll offset to the device-pixel grid. Because CELL is an
+    // integer, every cell and separator derived from this offset then lands on
+    // a whole device pixel, so the figure renders crisp and all layers move in
+    // lockstep (no shimmer between the cells and the grid lines).
+    offsetPx = Math.round(offsetPx * dpr) / dpr;
     ctx.clearRect(0, 0, cssW, cssH);
     const startCol = Math.floor(offsetPx / CELL) - 1;
     const endCol = startCol + VISIBLE_COLS + 2;
@@ -173,19 +178,17 @@ function fallbackCopy(text) {
     }
 
     // 2) Thin black separators (interior only; the box border covers the
-    //    outer edges). Drawn as fills snapped to the device-pixel grid so they
-    //    stay sharp instead of anti-aliasing into a blur at fractional, animated
-    //    positions. Each line is exactly one device pixel wide.
+    //    outer edges). Drawn as 1-device-pixel fills; since offsetPx is snapped
+    //    to the device grid above, these land on whole pixels and stay sharp.
     ctx.fillStyle = COLOR_LINE;
     const lineW = 1 / dpr; // 1 device pixel in CSS units
-    const snap = (v) => Math.round(v * dpr) / dpr; // align to device-pixel grid
     for (let gcol = startCol; gcol <= endCol + 1; gcol++) {
       const x = gcol * CELL - offsetPx;
       if (x <= 0 || x >= cssW) continue;
-      ctx.fillRect(snap(x), 0, lineW, cssH);
+      ctx.fillRect(x, 0, lineW, cssH);
     }
     for (let r = 1; r < ROWS; r++) {
-      ctx.fillRect(0, snap(r * CELL), cssW, lineW);
+      ctx.fillRect(0, r * CELL, cssW, lineW);
     }
   }
 
