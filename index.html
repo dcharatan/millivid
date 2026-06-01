@@ -20,10 +20,10 @@
             },
             colors: {
               brand: {
-                50: "#eef2ff",
-                500: "#6366f1",
-                600: "#4f46e5",
-                700: "#4338ca",
+                50: "#e6f4ff",
+                500: "#008cff",
+                600: "#0072d6",
+                700: "#005bab",
               },
             },
           },
@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -46,7 +46,7 @@
   <body class="bg-white text-slate-800 antialiased">
     <!-- ===================== Header / Title ===================== -->
     <header class="border-b border-slate-100 bg-white">
-      <div class="mx-auto max-w-4xl px-6 py-16 text-center sm:py-20">
+      <div class="mx-auto max-w-4xl px-6 pb-10 pt-16 text-center sm:pb-12 sm:pt-20">
         <h1 class="text-balance text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
           MilliVid: Adaptive Latents for Long-Range Consistency in Video Generation
         </h1>
@@ -114,32 +114,68 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-5xl px-6 pb-14 pt-16 sm:pt-20">
-      <!-- ===================== Teaser ===================== -->
-      <figure class="mb-16">
-        <div
-          class="flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
-        >
-          Teaser figure / video goes here
-        </div>
-        <figcaption class="mt-3 text-center text-sm text-slate-500">
-          Figure 1. A teaser illustrating the main result. Lorem ipsum dolor sit amet.
-        </figcaption>
-      </figure>
-
+    <main class="mx-auto max-w-5xl px-6 pb-14 pt-10 sm:pt-12">
       <!-- ===================== Abstract ===================== -->
       <section id="abstract" class="mb-16">
         <h2 class="section-heading">Abstract</h2>
         <p class="mt-4 leading-relaxed text-slate-700">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-          veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-          commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-          velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-          occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-          mollit anim id est laborum.
+          Transformer-based video generative models have become increasingly
+          realistic, but long-horizon consistency remains challenging to achieve
+          because even a few dozen frames create impractically long sequence
+          lengths. We show that this issue can be mitigated by generating video
+          using coarse-to-fine rollout within a multi-scale token space. Our
+          approach is simple: first, we pre-train an adaptive autoencoder that
+          compresses each frame into a hierarchy of tokens, with levels ranging
+          from the typical latent resolution to only a handful of tokens per
+          frame. This yields a hierarchy in which the coarsest levels capture the
+          most consequential information&mdash;such as scene layout and
+          semantics&mdash;while finer levels add high-frequency appearance and
+          texture. Then, we train a video diffusion model to generate these tokens
+          using coarse-to-fine rollout. By carefully controlling the level of
+          detail at which frames are generated and used as context during each
+          rollout step, we are able to preserve long-range consistency in geometry
+          and object permanence while expending less compute on long-term
+          consistency of less perceptually relevant details. We validate this
+          approach using a custom long-horizon Minecraft dataset, where it produces
+          substantially more consistent rollouts compared to strong baselines. We
+          hope this perspective opens new opportunities for long-term consistent
+          video generation.
         </p>
       </section>
+
+      <!-- Decorative "MILLIVID" animation between the abstract and the content.
+           Inlined from anim.html; styles scoped under .millivid-anim, script in
+           script.js. Purely decorative, so hidden from assistive tech. -->
+      <div class="millivid-anim my-12" aria-hidden="true">
+        <div class="figure">
+          <div class="box"><canvas id="screen"></canvas></div>
+
+          <svg class="axes" width="500" height="112" viewBox="0 0 500 112">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="0" refY="3"
+                      orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L6,3 L0,6 Z" fill="var(--axis)" />
+              </marker>
+            </defs>
+            <!-- y-axis: arrowhead centred on the top border's middle (y=9) -->
+            <line x1="39" y1="72" x2="39" y2="12" stroke="var(--axis)"
+                  stroke-width="1" marker-end="url(#arrow)" />
+            <!-- x-axis: arrowhead centred on the right border's middle (x=443) -->
+            <line x1="44" y1="77" x2="440" y2="77" stroke="var(--axis)"
+                  stroke-width="1" marker-end="url(#arrow)" />
+          </svg>
+
+          <div class="axis-title detail">Detail</div>
+          <div class="axis-title frame">Frame Index</div>
+
+          <!-- row labels: top row -> ×256, bottom row -> ×1 -->
+          <div class="row-label" style="top: 16px;">&#215;256</div>
+          <div class="row-label" style="top: 28px;">&#215;64</div>
+          <div class="row-label" style="top: 40px;">&#215;16</div>
+          <div class="row-label" style="top: 52px;">&#215;4</div>
+          <div class="row-label" style="top: 64px;">&#215;1</div>
+        </div>
+      </div>
 
       <!-- ===================== Method ===================== -->
       <section id="method" class="mb-16">
