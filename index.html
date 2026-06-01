@@ -22,10 +22,10 @@
             },
             colors: {
               brand: {
-                50: "#e6f4ff",
+                50: "#f3faff" /* very light #008cff tint, for the TL;DR fill */,
                 500: "#008cff",
-                600: "#0072d6",
-                700: "#005bab",
+                600: "#0079e6",
+                700: "#0062cc",
               },
             },
           },
@@ -228,12 +228,13 @@
 
         <!-- TL;DR callout -->
         <div
-          class="mx-auto mt-10 max-w-3xl rounded-xl border border-blue-200 bg-blue-50 px-6 py-4 text-left"
+          class="mx-auto mt-10 max-w-3xl rounded-xl border border-brand-500/50 bg-brand-50 px-6 py-4 text-left"
         >
-          <p class="leading-relaxed text-blue-900">
-            <span class="font-semibold text-blue-950">TL;DR:</span> For a given
-            transformer sequence length, multi-scale adaptive latents allow you
-            to generate videos with much longer memory.
+          <p class="leading-relaxed text-brand-500">
+            <span class="font-semibold text-brand-500">TL;DR:</span> Compared to
+            naive autoregressive rollout, multi-scale adaptive latents enable
+            generation of videos with much longer memory, given identical
+            transformer sequence length.
           </p>
         </div>
       </div>

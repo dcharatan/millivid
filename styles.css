@@ -8,10 +8,12 @@
  */
 
 :root {
-  /* Accent blue, matched to the #008cff used in the MILLIVID animation. */
+  /* Accent blue, anchored on the #008cff (HSL 207°, 100%, 50%) used in the
+   * MILLIVID animation. Darker shades keep full saturation so they stay the
+   * same vivid hue rather than looking greyed-out. */
   --brand-500: #008cff;
-  --brand-600: #0072d6;
-  --brand-700: #005bab;
+  --brand-600: #0079e6; /* hover: a touch darker, still vivid */
+  --brand-700: #0062cc;
 }
 
 /* Balanced wrapping for headings / short blocks. */
@@ -45,11 +47,11 @@
 /* Author name links. */
 .author-link {
   font-weight: 500;
-  color: var(--brand-700);
+  color: var(--brand-500);
   transition: color 150ms ease;
 }
 .author-link:hover {
-  color: var(--brand-500);
+  color: var(--brand-600);
   text-decoration: underline;
 }
 
