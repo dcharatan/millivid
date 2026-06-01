@@ -290,3 +290,31 @@ function fallbackCopy(text) {
   markSelected(levels, selectedLevel);
   render(selectedScene, selectedLevel);
 })();
+
+// ---- Adaptive autoencoder method-pipeline diagram ----
+// Builds the stacked token-grid pyramids (8x8 -> 4x4 -> 2x2 -> 1x1). The
+// "hierarchical" pyramid keeps every level; the "single" pyramid keeps only
+// one level (the rest are drawn empty) to illustrate the random masking step.
+(function autoencoderPipeline() {
+  const figure = document.getElementById("ae-pipeline");
+  if (!figure) return;
+
+  const LEVELS = [8, 4, 2, 1]; // grid sizes, coarsest grid at the bottom
+  const KEPT_LEVEL = 2; // the level the "single" pyramid keeps (the 2x2 grid)
+
+  figure.querySelectorAll("[data-tokens]").forEach((container) => {
+    const keepAll = container.dataset.tokens === "hierarchical";
+    LEVELS.forEach((n, level) => {
+      const grid = document.createElement("div");
+      grid.className = "ae-tok-grid";
+      grid.style.gridTemplateColumns = `repeat(${n}, 10px)`;
+      const filled = keepAll || level === KEPT_LEVEL;
+      for (let i = 0; i < n * n; i++) {
+        const cell = document.createElement("div");
+        cell.className = filled ? "ae-tok" : "ae-tok is-empty";
+        grid.appendChild(cell);
+      }
+      container.appendChild(grid);
+    });
+  });
+})();

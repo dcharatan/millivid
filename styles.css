@@ -300,3 +300,135 @@ html {
   border-radius: 0.75rem;
   background: #f1f5f9;
 }
+
+/* ---- Adaptive autoencoder method-pipeline diagram ----
+ * A left-to-right pipeline (Input -> Image Pyramid -> Hierarchical Tokens ->
+ * Single Level's Tokens -> Reconstructed Pyramid) with labelled operation
+ * arrows between stages. Recreated in the site's style: brand-blue tokens,
+ * Inter labels, rounded cards. Token grids are built in script.js. */
+.ae-pipe {
+  display: flex;
+  align-items: stretch; /* every column is as tall as the tallest stage */
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 720px; /* horizontal scroll on small screens */
+  padding: 0.25rem 0;
+}
+
+/* A pipeline stage (Input, Image Pyramid, ...) and an operation connector
+ * both lead with a fixed-height head so their bodies start on the same line. */
+/* The title + content of each stage are centred together as one group, so the
+ * title sits directly above its column's content rather than at the very top. */
+.ae-pipe-stage,
+.ae-pipe-conn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ae-pipe-head {
+  width: 7rem;
+  /* Fixed two-line-tall slot so one- and two-line titles push their content
+   * down by the same amount, keeping the pyramids aligned across columns. The
+   * title is bottom-aligned so it still sits right above its content. */
+  min-height: 1.85rem;
+  /* Gap below the title, matching the .ae-col-label mb-3 in the figure above. */
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+/* Titles inherit .ae-col-label's size (matching the figure above); only the
+ * line-height is tightened so multi-line titles wrap snugly. */
+.ae-pipe-head .ae-col-label {
+  line-height: 1.2;
+}
+/* Connectors have no title; drop the empty head so the arrow stays centred. */
+.ae-pipe-conn .ae-pipe-head {
+  display: none;
+}
+
+/* The stage body holds the pyramid (or single image), centred horizontally. */
+.ae-pipe-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The connector body is wider than its card so the arrow line (behind the
+ * card) shows on both sides; the arrow sits on the shared centre line. */
+.ae-pipe-conn .ae-pipe-body {
+  position: relative;
+  width: 3.5rem;
+}
+
+/* Stacked image / token pyramid: levels shrink downward, centre-aligned. */
+.ae-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Image pyramid levels. */
+.ae-pyr-img {
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  object-fit: cover;
+}
+
+/* Token grids and individual tokens. */
+.ae-tok-grid {
+  display: grid;
+  gap: 2px;
+}
+.ae-tok {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--brand-600);
+  background: var(--brand-500);
+}
+.ae-tok.is-empty {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+/* Operation connector: a right-pointing arrow that runs the full width of the
+ * connector, passing behind a labelled card with vertical (rotated) text. */
+.ae-arrow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.25px;
+  transform: translateY(-50%);
+  background: #94a3b8;
+}
+.ae-arrow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #94a3b8;
+}
+.ae-op-box {
+  position: relative; /* sits above the arrow line */
+  z-index: 1;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.3rem;
+}
+.ae-op-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #475569;
+  white-space: nowrap;
+}

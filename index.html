@@ -334,7 +334,7 @@
           id="adaptive-autoencoder"
           class="mt-8 text-xl font-semibold text-slate-900"
         >
-          Adaptive Autoencoder
+          Adaptive Autoencoder: Latent Space
         </h3>
         <p class="mt-3 leading-relaxed text-slate-700">
           The adaptive autoencoder creates a multi-resolution latent space where
@@ -397,7 +397,7 @@
                 data-level="0"
               >
                 <span class="ae-level-name">Level 0</span>
-                <span class="ae-level-tokens">256 Tokens</span>
+                <span class="ae-level-tokens">16x16 Tokens</span>
               </button>
               <button
                 type="button"
@@ -405,7 +405,7 @@
                 data-level="1"
               >
                 <span class="ae-level-name">Level 1</span>
-                <span class="ae-level-tokens">64 Tokens</span>
+                <span class="ae-level-tokens">8x8 Tokens</span>
               </button>
               <button
                 type="button"
@@ -413,7 +413,7 @@
                 data-level="2"
               >
                 <span class="ae-level-name">Level 2</span>
-                <span class="ae-level-tokens">16 Tokens</span>
+                <span class="ae-level-tokens">4x4 Tokens</span>
               </button>
               <button
                 type="button"
@@ -421,7 +421,7 @@
                 data-level="3"
               >
                 <span class="ae-level-name">Level 3</span>
-                <span class="ae-level-tokens">4 Tokens</span>
+                <span class="ae-level-tokens">2x2 Tokens</span>
               </button>
 
               <!-- Large Ground Truth + Reconstruction images (cols 3-4) -->
@@ -445,19 +445,189 @@
               aria-label="Autoencoder variant"
             >
               <option value="adaptive">an adaptive</option>
-              <option value="cascaded">a cascaded</option>
+              <option value="cascaded">a downscaled</option>
             </select>
             autoencoder's reconstruction at various token budgets.
           </figcaption>
         </figure>
 
         <p class="mt-3 leading-relaxed text-slate-700">
-          We compare our adaptive autoencoder to a "cascaded" equivalent, where
-          the coarser latents are downscaled (mean-pooled) versions of the
-          finest latents. The "cascaded" equivalent simulates what a cascaded
+          We compare our adaptive autoencoder to a "downscaled" equivalent,
+          where the coarser latents are downscaled (mean-pooled) versions of the
+          finest latents. The "downscaled" equivalent simulates what a cascaded
           diffusion model sees; adaptive latents provide much better
           reconstructions given small token budgets.
         </p>
+
+        <h3
+          id="adaptive-autoencoder-training-procedure"
+          class="mt-8 text-xl font-semibold text-slate-900"
+        >
+          Adaptive Autoencoder: Training Procedure
+        </h3>
+        <p class="mt-3 leading-relaxed text-slate-700">
+          We train the adaptive autoencoder as follows. First, we convert the
+          input image into a multi-resolution pyramid by repeatedly downscaling
+          it by 2x along each dimension. Next, we patchify the entire pyramid's
+          images using the same kernel size, which naturally yields fewer tokens
+          for coarser pyramid levels. Then, we feed the resulting tokens through
+          a transformer encoder. The encoder's output is our hierarchical latent
+          space. During training, we randomly select a level to decode. To
+          decode a particular level, we zero out the tokens corresponding to the
+          other levels and feed all tokens through a transformer decoder. The
+          decoder creates an image pyramid; we supervise on MSE at all pyramid
+          levels and additionally supervise on LPIPS at the highest-resolution
+          pyramid level.
+        </p>
+
+        <!-- Method pipeline diagram (recreated from autoencoder_method.svg in
+             the site's style). Stages flow left-to-right with labelled
+             operation arrows; token-grid pyramids are populated in script.js. -->
+        <figure id="ae-pipeline" class="my-10">
+          <div class="overflow-x-auto">
+            <div class="ae-pipe">
+              <!-- Input image -->
+              <div class="ae-pipe-stage">
+                <div class="ae-pipe-head">
+                  <span class="ae-col-label">Input</span>
+                </div>
+                <div class="ae-pipe-body">
+                  <img
+                    class="ae-pyr-img h-[94px] w-[94px]"
+                    src="autoencoder/000-653_f0861/gt.png"
+                    alt="Input frame"
+                  />
+                </div>
+              </div>
+
+              <!-- Rescale -->
+              <div class="ae-pipe-conn">
+                <div class="ae-pipe-head"></div>
+                <div class="ae-pipe-body">
+                  <div class="ae-arrow" aria-hidden="true"></div>
+                  <div class="ae-op-box">
+                    <span class="ae-op-label">Rescale</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Image pyramid -->
+              <div class="ae-pipe-stage">
+                <div class="ae-pipe-head">
+                  <span class="ae-col-label">Image Pyramid</span>
+                </div>
+                <div class="ae-pipe-body">
+                  <div class="ae-pyramid">
+                    <img
+                      class="ae-pyr-img h-[94px] w-[94px]"
+                      src="autoencoder/000-653_f0861/gt.png"
+                      alt="Image pyramid level 0"
+                    />
+                    <img
+                      class="ae-pyr-img h-[46px] w-[46px]"
+                      src="autoencoder/000-653_f0861/gt.png"
+                      alt="Image pyramid level 1"
+                    />
+                    <img
+                      class="ae-pyr-img h-[22px] w-[22px]"
+                      src="autoencoder/000-653_f0861/gt.png"
+                      alt="Image pyramid level 2"
+                    />
+                    <img
+                      class="ae-pyr-img h-[10px] w-[10px]"
+                      src="autoencoder/000-653_f0861/gt.png"
+                      alt="Image pyramid level 3"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Patchify and Encode -->
+              <div class="ae-pipe-conn">
+                <div class="ae-pipe-head"></div>
+                <div class="ae-pipe-body">
+                  <div class="ae-arrow" aria-hidden="true"></div>
+                  <div class="ae-op-box">
+                    <span class="ae-op-label">Patchify and Encode</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hierarchical tokens (all levels present) -->
+              <div class="ae-pipe-stage">
+                <div class="ae-pipe-head">
+                  <span class="ae-col-label">Hierarchical Tokens</span>
+                </div>
+                <div class="ae-pipe-body">
+                  <div class="ae-pyramid" data-tokens="hierarchical"></div>
+                </div>
+              </div>
+
+              <!-- Randomly Mask -->
+              <div class="ae-pipe-conn">
+                <div class="ae-pipe-head"></div>
+                <div class="ae-pipe-body">
+                  <div class="ae-arrow" aria-hidden="true"></div>
+                  <div class="ae-op-box">
+                    <span class="ae-op-label">Zero Out Other Levels</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Single level's tokens (one level kept) -->
+              <div class="ae-pipe-stage">
+                <div class="ae-pipe-head">
+                  <span class="ae-col-label">Single Level's Tokens</span>
+                </div>
+                <div class="ae-pipe-body">
+                  <div class="ae-pyramid" data-tokens="single"></div>
+                </div>
+              </div>
+
+              <!-- Decode -->
+              <div class="ae-pipe-conn">
+                <div class="ae-pipe-head"></div>
+                <div class="ae-pipe-body">
+                  <div class="ae-arrow" aria-hidden="true"></div>
+                  <div class="ae-op-box">
+                    <span class="ae-op-label">Decode</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reconstructed pyramid -->
+              <div class="ae-pipe-stage">
+                <div class="ae-pipe-head">
+                  <span class="ae-col-label">Reconstructed Pyramid</span>
+                </div>
+                <div class="ae-pipe-body">
+                  <div class="ae-pyramid">
+                    <img
+                      class="ae-pyr-img h-[94px] w-[94px]"
+                      src="autoencoder/000-653_f0861/loopcraft_autoencoder_level0.png"
+                      alt="Reconstructed pyramid level 0"
+                    />
+                    <img
+                      class="ae-pyr-img h-[46px] w-[46px]"
+                      src="autoencoder/000-653_f0861/loopcraft_autoencoder_level0.png"
+                      alt="Reconstructed pyramid level 1"
+                    />
+                    <img
+                      class="ae-pyr-img h-[22px] w-[22px]"
+                      src="autoencoder/000-653_f0861/loopcraft_autoencoder_level0.png"
+                      alt="Reconstructed pyramid level 2"
+                    />
+                    <img
+                      class="ae-pyr-img h-[10px] w-[10px]"
+                      src="autoencoder/000-653_f0861/loopcraft_autoencoder_level0.png"
+                      alt="Reconstructed pyramid level 3"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </figure>
 
         <h3
           id="coarse-to-fine-rollout"
@@ -526,10 +696,17 @@
             rel="noopener"
             >Andrew Song</a
           >
-          for his feedback during the paper-writing process. The authors
-          acknowledge the MIT Office of Research Computing and Data for
-          providing high performance computing resources that have contributed
-          to the research results reported within this paper.
+          for his feedback during the paper-writing process. This work was
+          supported by the Toyota Research Institute (TRI) University 3.0 (URP)
+          program, the National Science Foundation under Grant No. 2211259, by
+          the Intelligence Advanced Research Projects Activity (IARPA) via
+          Department of Interior/Interior Business Center (DOI/IBC) under
+          140D0423C0075, by the Amazon Science Hub, by the MIT-Google Program
+          for Computing Innovation, by AMD via the MIT AI Hardware Program, and
+          by a 2025 MIT Office of Research Computing and Data Seed Grant. The
+          views and conclusions contained in this document are those of the
+          authors and should not be interpreted as necessarily representing the
+          official policies, either expressed or implied, of any other entity.
         </p>
       </section>
     </main>
