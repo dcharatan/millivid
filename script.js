@@ -231,7 +231,11 @@ function fallbackCopy(text) {
     const frames =
       window.ROLLOUT_STRATEGIES &&
       window.ROLLOUT_STRATEGIES[canvas.dataset.strategy];
-    if (root && frames) start(canvas, root, frames);
+    if (!root || !frames) return;
+    // A canvas with data-step uses the stepped renderer (hold the grid, then
+    // ease forward by `step` columns, repeat) instead of the continuous scroll.
+    if (canvas.dataset.step) startStepped(canvas, root, frames);
+    else start(canvas, root, frames);
   });
 
   function start(canvas, root, frames) {
@@ -367,6 +371,129 @@ function fallbackCopy(text) {
       // coincides with the frames restarting (= shift content right by N).
       const offsetPx = frac * N * CELL;
       draw(offsetPx, frameIdx);
+      requestAnimationFrame(frame);
+    }
+
+    draw(0, 0);
+    requestAnimationFrame(frame);
+  }
+
+  // ---- Stepped renderer (baseline) ----------------------------------------
+  // The baseline strategy is a single static grid (e.g. [1,1,2,2]: two context
+  // + two denoised cells), so the continuous scroll above just drifts the block
+  // and snaps back, which reads as jerky. Instead, animate it as discrete steps:
+  // hold the freshly generated grid, then ease forward (leftward) by `step`
+  // columns, then repeat.
+  //
+  // Seamlessness: the grid's column origin advances by `step` each cycle while
+  // the scroll offset advances to match, so the generation front stays at the
+  // same screen position across cycles. The grey "fixed" history (left) and the
+  // white "pending" future (right) are uniform and effectively infinite, so the
+  // per-cycle advance is invisible there. At the cycle boundary the scroll
+  // offset is continuous and only the colours change in place -- the front's
+  // oldest context retires to grey, its denoised cells become context, and two
+  // new denoised cells light up -- so the "update" looks like a generation step
+  // rather than a teleport, and the loop is perfectly seamless.
+  function startStepped(canvas, root, frames) {
+    const grid = frames[0]; // single frame: ROWS x COLS of 0/1/2
+    const ROWS = grid.length;
+    const COLS = grid[0].length;
+
+    const padOf = (v) => (v !== undefined && v !== "" ? parseInt(v, 10) : 1);
+    const PAD_LEFT = padOf(canvas.dataset.padLeft);
+    const PAD_RIGHT = padOf(canvas.dataset.padRight);
+    const STEP = parseInt(canvas.dataset.step, 10) || 1;
+    const VISIBLE_COLS = PAD_LEFT + COLS + PAD_RIGHT;
+
+    // Left-most denoised (value 2) column: everything to its left counts as
+    // already generated (grey / fixed), everything past the grid is white.
+    let firstDenoise = COLS;
+    grid.forEach((row) =>
+      row.forEach((v, c) => {
+        if (v === 2 && c < firstDenoise) firstDenoise = c;
+      }),
+    );
+
+    // ---- Sizing (mirrors start()) ----
+    const css = getComputedStyle(root);
+    const CELL = parseInt(css.getPropertyValue("--cell"));
+    const COLOR_LINE = css.getPropertyValue("--grid-line").trim();
+    const COLOR_BG = css.getPropertyValue("--cell-bg").trim(); // future (white)
+    const COLOR_FIXED = css.getPropertyValue("--fixed-color").trim(); // generated
+    const COLOR_CTX = css.getPropertyValue("--ctx-color").trim(); // value 1
+    const COLOR_GEN = css.getPropertyValue("--gen-color").trim(); // value 2
+
+    const ctx = canvas.getContext("2d");
+    const cssW = VISIBLE_COLS * CELL;
+    const cssH = ROWS * CELL;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.scale(dpr, dpr);
+
+    // Colour of grid-column gcol after `step` completed advances. The grid
+    // origin sits `step * STEP` columns to the right each cycle (see above).
+    function cellColor(gcol, row, step) {
+      const d = gcol - PAD_LEFT - step * STEP;
+      const inGrid = d >= 0 && d < COLS;
+      const value = inGrid ? grid[row][d] : 0;
+      if (value === 1) return COLOR_CTX; // blue (context)
+      if (value === 2) return COLOR_GEN; // orange (denoised)
+      return d < firstDenoise ? COLOR_FIXED : COLOR_BG; // grey past / white future
+    }
+
+    function draw(offsetPx, step) {
+      offsetPx = Math.round(offsetPx * dpr) / dpr;
+      ctx.clearRect(0, 0, cssW, cssH);
+      const startCol = Math.floor(offsetPx / CELL) - 1;
+      const endCol = startCol + VISIBLE_COLS + 2;
+
+      // 1) Fill cells by value.
+      for (let gcol = startCol; gcol <= endCol; gcol++) {
+        const x = gcol * CELL - offsetPx;
+        if (x > cssW || x + CELL < 0) continue;
+        for (let r = 0; r < ROWS; r++) {
+          ctx.fillStyle = cellColor(gcol, r, step);
+          ctx.fillRect(x, r * CELL, CELL, CELL);
+        }
+      }
+
+      // 2) Thin black separators (1 device pixel).
+      ctx.fillStyle = COLOR_LINE;
+      const lineW = 1 / dpr;
+      for (let gcol = startCol; gcol <= endCol + 1; gcol++) {
+        const x = gcol * CELL - offsetPx;
+        if (x <= 0 || x >= cssW) continue;
+        ctx.fillRect(x, 0, lineW, cssH);
+      }
+      for (let r = 1; r < ROWS; r++) {
+        ctx.fillRect(0, r * CELL, cssW, lineW);
+      }
+    }
+
+    // ---- Timing: hold the grid, then ease forward by STEP columns ----
+    const HOLD_MS = 650; // pause showing the freshly updated grid
+    const SHIFT_MS = 550; // eased slide forward by STEP columns
+    const CYCLE_MS = HOLD_MS + SHIFT_MS;
+    // Cubic ease-in-out: accelerate, then decelerate.
+    const ease = (t) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    let startTs = null;
+
+    function frame(ts) {
+      if (startTs === null) startTs = ts;
+      const elapsed = ts - startTs;
+      const step = Math.floor(elapsed / CYCLE_MS); // advances done so far
+      const within = elapsed - step * CYCLE_MS;
+      // 0 during the hold, eased 0->1 during the shift.
+      const e = within < HOLD_MS ? 0 : ease((within - HOLD_MS) / SHIFT_MS);
+      // Offset stays continuous across the cycle boundary ((step + 1) at e=1
+      // equals (step + 1) at the next cycle's e=0), so only the colours change
+      // at the boundary -- the seamless "generation" update.
+      const offsetPx = (step + e) * STEP * CELL;
+      draw(offsetPx, step);
       requestAnimationFrame(frame);
     }
 
