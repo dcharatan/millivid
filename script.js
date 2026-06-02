@@ -522,6 +522,176 @@ function fallbackCopy(text) {
   load();
 })();
 
+// ---- Quality vs. Consistency line charts ----
+// Two SVG line charts built from window.QUALITY_CONSISTENCY (loaded from
+// plots/quality_consistency.js). LPIPS has 768 per-frame samples; FVD has 48
+// samples taken every 16 frames. Both share the 0..768 frame x-axis. Dashed
+// lines mark the best/worst reference levels.
+(function qualityConsistencyCharts() {
+  const data = window.QUALITY_CONSISTENCY;
+  if (!data) return;
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  // Method id -> line colour. Ordered worst (green) to best (orange), matching
+  // the source figure: orange is the most consistent / highest quality.
+  const COLORS = {
+    ncwwsaan52rr: "#ff7f0e", // orange
+    dj1luygiga68: "#1f77b4", // blue
+    uxl1hf3ibsou: "#2ca02c", // green
+  };
+
+  // The viewBox is exactly the plot box, so the box aligns flush with the page
+  // column; axis tick labels are drawn at negative / past-edge coordinates and
+  // bleed outside via overflow: visible.
+  const PW = 400;
+  const PH = 246; // 20% taller than the original 205
+  const X_MAX = 768;
+  const X_TICKS = [0, 128, 256, 384, 512, 640, 768];
+
+  // Per-metric axis config. xOf maps a sample index to its frame number.
+  const METRICS = {
+    lpips: {
+      yMin: 0,
+      yMax: 0.85,
+      yTicks: [0, 0.2, 0.4, 0.6, 0.8],
+      yFmt: (v) => v.toFixed(1),
+      xOf: (i) => i + 1, // 768 samples -> frames 1..768
+      refs: [
+        { v: data.lpips_worst, label: "Worst Possible (Random Frames)" },
+        { v: data.lpips_best, label: "Best Possible (Autoencoded Frames)" },
+      ],
+    },
+    fvd: {
+      // Drop the floor below zero so the near-zero "best" line sits above the
+      // bottom axis with room for its label underneath.
+      yMin: -110,
+      yMax: 870,
+      yTicks: [0, 200, 400, 600, 800],
+      yFmt: (v) => String(v),
+      xOf: (i) => (i + 1) * 16, // 48 samples every 16 frames -> 16..768
+      refs: [
+        {
+          v: data.fvd_best,
+          label: "Best Possible (Autoencoded Frames)",
+          below: true,
+        },
+      ],
+    },
+  };
+
+  const el = (name, attrs) => {
+    const node = document.createElementNS(SVG_NS, name);
+    for (const k in attrs) node.setAttribute(k, attrs[k]);
+    return node;
+  };
+
+  document.querySelectorAll("#quality-consistency .qc-plot").forEach((host) => {
+    const metric = host.dataset.metric;
+    const cfg = METRICS[metric];
+    const series = data[metric];
+    if (!cfg || !series) return;
+
+    const xPx = (frame) => (frame / X_MAX) * PW;
+    const yPx = (v) => (1 - (v - cfg.yMin) / (cfg.yMax - cfg.yMin)) * PH;
+
+    // overflow: visible (set in CSS) lets the bled axis labels show outside.
+    const svg = el("svg", { viewBox: `0 0 ${PW} ${PH}` });
+
+    // Horizontal gridlines + y-axis tick labels (labels bleed left of the box).
+    cfg.yTicks.forEach((t) => {
+      const y = yPx(t);
+      svg.appendChild(
+        el("line", {
+          x1: 0,
+          y1: y,
+          x2: PW,
+          y2: y,
+          stroke: "#eef2f7",
+          "stroke-width": 1,
+        }),
+      );
+      const label = el("text", {
+        x: -8,
+        y: y,
+        "text-anchor": "end",
+        "dominant-baseline": "central",
+        fill: "#64748b",
+      });
+      label.textContent = cfg.yFmt(t);
+      svg.appendChild(label);
+    });
+
+    X_TICKS.forEach((t) => {
+      const label = el("text", {
+        x: xPx(t),
+        y: PH + 16,
+        "text-anchor": "middle",
+        fill: "#64748b",
+      });
+      label.textContent = String(t);
+      svg.appendChild(label);
+    });
+
+    // Dashed best/worst reference lines, with a grey annotation above each.
+    cfg.refs.forEach((ref) => {
+      const y = yPx(ref.v);
+      svg.appendChild(
+        el("line", {
+          x1: 0,
+          y1: y,
+          x2: PW,
+          y2: y,
+          stroke: "#94a3b8",
+          "stroke-width": 1.5,
+          "stroke-dasharray": "5 4",
+        }),
+      );
+      const note = el("text", {
+        x: 6,
+        y: ref.below ? y + 6 : y - 6,
+        "text-anchor": "start",
+        "dominant-baseline": ref.below ? "hanging" : "auto",
+        fill: "#94a3b8",
+      });
+      note.textContent = ref.label;
+      svg.appendChild(note);
+    });
+
+    // Data lines.
+    Object.keys(series).forEach((id) => {
+      const pts = series[id]
+        .map((v, i) => `${xPx(cfg.xOf(i)).toFixed(2)},${yPx(v).toFixed(2)}`)
+        .join(" ");
+      svg.appendChild(
+        el("polyline", {
+          points: pts,
+          fill: "none",
+          stroke: COLORS[id] || "#64748b",
+          "stroke-width": 2,
+          "stroke-linejoin": "round",
+          "stroke-linecap": "round",
+        }),
+      );
+    });
+
+    // The black left (y) / bottom (x) axes are a CSS-bordered overlay on the
+    // plot box (.qc-plot::after in styles.css), which stays crisp at any zoom.
+    host.appendChild(svg);
+
+    // All label text should render at the body text size. SVG text scales with
+    // the viewBox, so counter that: set the svg font-size to bodyPx / scale,
+    // where scale = renderedWidth / PW. Re-run on resize so it always matches.
+    const bodyPx = parseFloat(getComputedStyle(document.body).fontSize);
+    const syncFontSize = () => {
+      const w = host.clientWidth;
+      if (!w) return;
+      svg.style.fontSize = `${(bodyPx * PW) / w}px`;
+    };
+    syncFontSize();
+    new ResizeObserver(syncFontSize).observe(host);
+  });
+})();
+
 // ---- Adaptive autoencoder method-pipeline diagram ----
 // Builds the stacked token-grid pyramids (8x8 -> 4x4 -> 2x2 -> 1x1). The
 // "hierarchical" pyramid keeps every level; the "single" pyramid keeps only

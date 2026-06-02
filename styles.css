@@ -418,6 +418,74 @@ html {
   aspect-ratio: 1048 / 256;
 }
 
+/* ---- Quality vs. Consistency line charts ----
+ * Two SVG line charts (Consistency / Quality) side by side, built in script.js
+ * from plots/quality_consistency.js. Titles use the document font (Inter). */
+.qc-panels {
+  display: flex;
+  flex-wrap: wrap;
+  /* Wide column gap so the right panel's left-bleeding y-axis labels sit clear
+   * of the left panel; row gap leaves room for the bottom x-axis labels. */
+  gap: 1.75rem 5rem;
+  justify-content: center;
+}
+.qc-panel {
+  flex: 1 1 320px;
+  min-width: 280px;
+}
+.qc-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+/* The plot box aligns flush with the panel (= column); the axis tick labels
+ * bleed outside the box via overflow: visible. */
+.qc-plot {
+  position: relative;
+}
+.qc-plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+/* Black left (y) / bottom (x) axes as a bordered overlay matching the plot box.
+ * A CSS border stays crisp at any zoom and doesn't clip like the SVG edge did. */
+.qc-plot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-left: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  pointer-events: none;
+}
+
+/* Legend below the charts, styled like the animation legends (16px swatch with
+ * a 1px black border). Colours match the plotted lines. */
+.qc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.5rem;
+  margin-top: 2.5rem;
+}
+.qc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1rem;
+  color: #334155;
+}
+.qc-swatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #000000;
+}
+
 /* ---- Adaptive autoencoder method-pipeline diagram ----
  * A left-to-right pipeline (Input -> Image Pyramid -> Hierarchical Tokens ->
  * Single Level's Tokens -> Reconstructed Pyramid) with labelled operation
