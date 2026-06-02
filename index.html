@@ -260,63 +260,24 @@
         </p>
       </section>
 
-      <!-- Decorative "MILLIVID" animation between the abstract and the content.
-           Inlined from anim.html; styles scoped under .millivid-anim, script in
-           script.js. Purely decorative, so hidden from assistive tech. -->
-      <div class="millivid-anim my-8" aria-hidden="true">
-        <div class="figure">
-          <div class="box"><canvas id="screen"></canvas></div>
-
-          <svg class="axes" width="500" height="112" viewBox="0 0 500 112">
-            <defs>
-              <marker
-                id="arrow"
-                markerWidth="8"
-                markerHeight="8"
-                refX="0"
-                refY="3"
-                orient="auto"
-                markerUnits="userSpaceOnUse"
-              >
-                <path d="M0,0 L6,3 L0,6 Z" fill="var(--axis)" />
-              </marker>
-            </defs>
-            <!-- y-axis: arrowhead centred on the top border's middle (y=9) -->
-            <line
-              x1="39"
-              y1="72"
-              x2="39"
-              y2="12"
-              stroke="var(--axis)"
-              stroke-width="1"
-              marker-end="url(#arrow)"
-            />
-            <!-- x-axis: arrowhead centred on the right border's middle (x=443) -->
-            <line
-              x1="44"
-              y1="77"
-              x2="440"
-              y2="77"
-              stroke="var(--axis)"
-              stroke-width="1"
-              marker-end="url(#arrow)"
-            />
-          </svg>
-
-          <div class="axis-title detail">Detail</div>
-          <div class="axis-title frame">Frame Index</div>
-
-          <!-- row labels: top row -> ×256, bottom row -> ×1 -->
-          <div class="row-label" style="top: 16px">&#215;256</div>
-          <div class="row-label" style="top: 28px">&#215;64</div>
-          <div class="row-label" style="top: 40px">&#215;16</div>
-          <div class="row-label" style="top: 52px">&#215;4</div>
-          <div class="row-label" style="top: 64px">&#215;1</div>
+      <!-- ===================== Results ===================== -->
+      <section id="results" class="mt-10">
+        <h2 class="section-heading">Results</h2>
+        <p class="mt-4 leading-relaxed text-slate-700">
+          At vero eos et accusamus et iusto odio dignissimos ducimus qui
+          blanditiis praesentium voluptatum deleniti atque corrupti quos dolores
+          et quas molestias excepturi sint occaecati cupiditate non provident,
+          similique sunt in culpa qui officia deserunt mollitia animi.
+        </p>
+        <div
+          class="mt-6 flex aspect-[16/7] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
+        >
+          Results figure goes here
         </div>
-      </div>
+      </section>
 
       <!-- ===================== Method ===================== -->
-      <section id="method" class="mb-24">
+      <section id="method" class="mt-10 mb-24">
         <h2 class="section-heading">Method</h2>
         <p class="mt-4 leading-relaxed text-slate-700">
           Our method has two key components: an
@@ -326,12 +287,13 @@
           and a latent diffusion model that uses
           <a class="text-link" href="#coarse-to-fine-rollout"
             >coarse-to-fine rollout</a
-          >.
+          >. The diffusion model operates in the autoencoder's multi-level
+          latent space.
         </p>
 
         <h3
           id="adaptive-autoencoder"
-          class="mt-12 text-xl font-semibold text-slate-900"
+          class="mt-10 text-xl font-semibold text-slate-900"
         >
           Adaptive Autoencoder: Latent Space
         </h3>
@@ -450,17 +412,27 @@
           </figcaption>
         </figure>
 
-        <p class="mt-3 leading-relaxed text-slate-700">
-          We compare our adaptive autoencoder to a "downscaled" equivalent,
-          where the coarser latents are downscaled (mean-pooled) versions of the
-          finest latents. The "downscaled" equivalent simulates what a cascaded
-          diffusion model sees; adaptive latents provide much better
-          reconstructions given small token budgets.
-        </p>
+        <div
+          class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4"
+        >
+          <h4 class="font-semibold text-slate-900">
+            Side Note: How are multi-level adaptive latents different from
+            resolution cascades?
+          </h4>
+          <p class="mt-2 leading-relaxed text-slate-700">
+            We compare our adaptive autoencoder to a "downscaled" equivalent,
+            where the coarser latents are downscaled (mean-pooled) versions of
+            the finest latents. The "downscaled" equivalent simulates what a
+            cascaded diffusion model based on resolution cascades sees; adaptive
+            latents provide much better reconstructions given small token
+            budgets. Use the drop-down menu to switch the above figure to
+            visualizing the "downscaled" equivalent.
+          </p>
+        </div>
 
         <h3
           id="adaptive-autoencoder-training-procedure"
-          class="mt-12 text-xl font-semibold text-slate-900"
+          class="mt-10 text-xl font-semibold text-slate-900"
         >
           Adaptive Autoencoder: Training Procedure
         </h3>
@@ -630,9 +602,9 @@
 
         <h3
           id="coarse-to-fine-rollout"
-          class="mt-12 text-xl font-semibold text-slate-900"
+          class="mt-10 text-xl font-semibold text-slate-900"
         >
-          Coarse-to-Fine Rollout
+          Generation via Coarse-to-Fine Rollout
         </h3>
         <p class="mt-3 leading-relaxed text-slate-700">
           Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
@@ -915,22 +887,6 @@
         </figure>
       </section>
 
-      <!-- ===================== Results ===================== -->
-      <section id="results" class="mb-24">
-        <h2 class="section-heading">Results</h2>
-        <p class="mt-4 leading-relaxed text-slate-700">
-          At vero eos et accusamus et iusto odio dignissimos ducimus qui
-          blanditiis praesentium voluptatum deleniti atque corrupti quos dolores
-          et quas molestias excepturi sint occaecati cupiditate non provident,
-          similique sunt in culpa qui officia deserunt mollitia animi.
-        </p>
-        <div
-          class="mt-6 flex aspect-[16/7] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
-        >
-          Results figure goes here
-        </div>
-      </section>
-
       <!-- ===================== BibTeX ===================== -->
       <section id="bibtex" class="mb-12">
         <div class="flex items-center justify-between">
@@ -980,6 +936,61 @@
           official policies, either expressed or implied, of any other entity.
         </p>
       </section>
+
+      <!-- Decorative "MILLIVID" animation at the bottom of the page. Inlined
+           from anim.html; styles scoped under .millivid-anim, script in
+           script.js. Purely decorative, so hidden from assistive tech. -->
+      <div class="millivid-anim my-8" aria-hidden="true">
+        <div class="figure">
+          <div class="box"><canvas id="screen"></canvas></div>
+
+          <svg class="axes" width="500" height="112" viewBox="0 0 500 112">
+            <defs>
+              <marker
+                id="arrow"
+                markerWidth="8"
+                markerHeight="8"
+                refX="0"
+                refY="3"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+              >
+                <path d="M0,0 L6,3 L0,6 Z" fill="var(--axis)" />
+              </marker>
+            </defs>
+            <!-- y-axis: arrowhead centred on the top border's middle (y=9) -->
+            <line
+              x1="39"
+              y1="72"
+              x2="39"
+              y2="12"
+              stroke="var(--axis)"
+              stroke-width="1"
+              marker-end="url(#arrow)"
+            />
+            <!-- x-axis: arrowhead centred on the right border's middle (x=443) -->
+            <line
+              x1="44"
+              y1="77"
+              x2="440"
+              y2="77"
+              stroke="var(--axis)"
+              stroke-width="1"
+              marker-end="url(#arrow)"
+            />
+          </svg>
+
+          <div class="axis-title detail">Detail</div>
+          <div class="axis-title frame">Frame Index</div>
+
+          <!-- row labels: top row -> ×256, bottom row -> ×1 -->
+          <div class="row-label" style="top: 16px">&#215;256</div>
+          <div class="row-label" style="top: 28px">&#215;64</div>
+          <div class="row-label" style="top: 40px">&#215;16</div>
+          <div class="row-label" style="top: 52px">&#215;4</div>
+          <div class="row-label" style="top: 64px">&#215;1</div>
+        </div>
+      </div>
     </main>
 
     <!-- Rollout animation data (script-loaded so it works on file:// too). -->
