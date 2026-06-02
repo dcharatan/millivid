@@ -212,6 +212,16 @@ html {
   font-family: inherit; /* match the document font (Inter) */
 }
 
+/* Heading above each animation. The figure is 884px wide with a 44px left pad,
+ * so this matches that geometry to left-align the heading with the box edge. */
+.rollout-anim .rollout-anim-title {
+  width: 884px;
+  max-width: 100%;
+  padding-left: 44px;
+  margin-bottom: 0.35rem;
+  text-align: left;
+}
+
 /* Figure box: 44 + 784 + 56 = 884 wide, 8 + 64 + 40 = 112 tall. The canvas is
  * 780 x 60 (39 cols x 3 rows at --cell 20px) plus the 2px box border. */
 .rollout-anim .figure {
