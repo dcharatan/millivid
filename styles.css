@@ -395,6 +395,29 @@ html {
   background: #f1f5f9;
 }
 
+/* ---- Results video widget ----
+ * One video at a time, chosen from a dropdown. Each video tiles four 256px-wide
+ * columns separated by three 8px margins (4*256 + 3*8 = 1048 units). The video
+ * fills the page's centre column, and the headings grid uses the same 256fr/8fr
+ * track pattern so each heading stays centred over its column at any scale. */
+.results-widget {
+  min-width: 560px; /* scroll rather than squish the headings on small screens */
+}
+.results-headings {
+  display: grid;
+  grid-template-columns: 256fr 8fr 256fr 8fr 256fr 8fr 256fr;
+  align-items: end;
+  margin-bottom: 0.5rem;
+}
+.results-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Reserve the exact slot so switching videos doesn't reflow the page. Every
+   * video is 256*4 + 8*3 = 1048 wide by 256 tall. */
+  aspect-ratio: 1048 / 256;
+}
+
 /* ---- Adaptive autoencoder method-pipeline diagram ----
  * A left-to-right pipeline (Input -> Image Pyramid -> Hierarchical Tokens ->
  * Single Level's Tokens -> Reconstructed Pyramid) with labelled operation
@@ -467,7 +490,7 @@ html {
 .ae-pyr-img {
   display: block;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #000000;
   object-fit: cover;
 }
 
@@ -480,7 +503,7 @@ html {
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  border: 1px solid var(--brand-600);
+  border: 1px solid #000000;
   background: var(--brand-500);
 }
 .ae-tok.is-empty {

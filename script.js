@@ -457,6 +457,71 @@ function fallbackCopy(text) {
   render(selectedScene, selectedLevel);
 })();
 
+// ---- Results video widget ----
+// Shows one video at a time from the results/ folder, chosen via a dropdown.
+// A random video is selected on page load.
+(function resultsVideoWidget() {
+  const select = document.getElementById("results-select");
+  const video = document.getElementById("results-video");
+  if (!select || !video) return;
+
+  // File stems (sans .mp4) of the videos in results/.
+  const VIDEOS = [
+    "001_382",
+    "001_853",
+    "002_549",
+    "002_616",
+    "003_166",
+    "003_913",
+    "004_230",
+    "004_275",
+    "004_675",
+    "005_301",
+    "005_675",
+    "006_387",
+    "006_727",
+    "006_729",
+    "007_396",
+    "009_150",
+    "009_659",
+    "009_730",
+  ];
+
+  // Populate the dropdown.
+  VIDEOS.forEach((name, i) => {
+    const option = document.createElement("option");
+    option.value = `results/${name}.mp4`;
+    option.textContent = `${name}.mp4`;
+    select.appendChild(option);
+  });
+
+  const load = () => {
+    video.src = select.value;
+    video.load();
+  };
+  select.addEventListener("change", load);
+
+  // The first column shows the context window for the first 256 frames; after
+  // that, it shows the ground-truth continuation. At 20 fps that switch happens
+  // at 256 / 20 = 12.8 s. Updating on timeupdate/seeking keeps the label correct
+  // even when the user scrubs manually.
+  const contextLabel = document.getElementById("results-context-label");
+  const FPS = 20;
+  const SWITCH_TIME = 256 / FPS;
+  const updateContextLabel = () => {
+    if (!contextLabel) return;
+    contextLabel.textContent =
+      video.currentTime >= SWITCH_TIME ? "Ground Truth" : "Context";
+  };
+  ["timeupdate", "seeking", "seeked", "loadedmetadata"].forEach((evt) =>
+    video.addEventListener(evt, updateContextLabel),
+  );
+
+  // Random video on page load.
+  select.selectedIndex = Math.floor(Math.random() * VIDEOS.length);
+  load();
+})();
+
 // ---- Adaptive autoencoder method-pipeline diagram ----
 // Builds the stacked token-grid pyramids (8x8 -> 4x4 -> 2x2 -> 1x1). The
 // "hierarchical" pyramid keeps every level; the "single" pyramid keeps only

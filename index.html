@@ -223,10 +223,12 @@
           class="mx-auto mt-10 max-w-3xl rounded-xl border border-brand-500/50 bg-brand-50 px-6 py-4 text-left"
         >
           <p class="leading-relaxed text-brand-500">
-            <span class="font-semibold text-brand-500">TL;DR:</span> Compared to
-            naive autoregressive rollout, multi-scale adaptive latents enable
-            generation of videos with much longer memory, given identical
-            transformer sequence length.
+            <span class="font-semibold text-brand-500">TL;DR:</span> We present
+            an autoregressive video generation framework with
+            <u>long memory.</u> By leveraging a hierarchical latent space and
+            coarse-to-fine rollout, it produces significantly more consistent
+            videos than FramePack and standard autoregressive rollout for the
+            same transformer sequence length.
           </p>
         </div>
       </div>
@@ -264,16 +266,59 @@
       <section id="results" class="mt-10">
         <h2 class="section-heading">Results</h2>
         <p class="mt-4 leading-relaxed text-slate-700">
-          At vero eos et accusamus et iusto odio dignissimos ducimus qui
-          blanditiis praesentium voluptatum deleniti atque corrupti quos dolores
-          et quas molestias excepturi sint occaecati cupiditate non provident,
-          similique sunt in culpa qui officia deserunt mollitia animi.
+          Each method sees up to 256 frames of the same context, then begins
+          autoregressive rollout conditioned on ground-truth actions
+          (forward/left/right). Our method produces rollouts that are
+          significantly more consistent with the ground truth compared to
+          FramePack and standard autoregressive rollout given the same per-NFE
+          transformer sequence length.
         </p>
-        <div
-          class="mt-6 flex aspect-[16/7] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
-        >
-          Results figure goes here
-        </div>
+
+        <!-- Results video widget. Each video tiles 4 columns (Context, MilliVid,
+             FramePack, Full-Res. Rollout) of width 256 with 8px margins between
+             them. The headings grid mirrors that geometry (256fr 8fr ... = 1048
+             units total) so each heading stays centred over its column as the
+             video scales. The video list + random-on-load are wired in script.js. -->
+        <figure id="results-figure" class="my-8">
+          <div class="overflow-x-auto">
+            <div class="results-widget">
+              <div class="results-headings">
+                <div
+                  id="results-context-label"
+                  class="ae-col-label"
+                  style="grid-column: 1"
+                >
+                  Context
+                </div>
+                <div class="ae-col-label" style="grid-column: 3">
+                  MilliVid (Our Method)
+                </div>
+                <div class="ae-col-label" style="grid-column: 5">FramePack</div>
+                <div class="ae-col-label" style="grid-column: 7">
+                  Standard Rollout
+                </div>
+              </div>
+              <video
+                id="results-video"
+                class="results-video"
+                autoplay
+                loop
+                muted
+                playsinline
+                controls
+              ></video>
+            </div>
+          </div>
+          <figcaption class="mt-3 text-sm text-slate-500">
+            You are viewing example
+            <select
+              id="results-select"
+              class="ae-select"
+              aria-label="Result video"
+            ></select>
+            . These videos were chosen at random among the evaluation set.
+          </figcaption>
+        </figure>
       </section>
 
       <!-- ===================== Method ===================== -->
