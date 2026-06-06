@@ -225,10 +225,9 @@
           <p class="leading-relaxed text-brand-500">
             <span class="font-semibold text-brand-500">TL;DR:</span> We present
             an autoregressive video generation framework with
-            <u>long memory.</u> By leveraging a hierarchical latent space and
-            coarse-to-fine rollout, it produces significantly more consistent
-            videos than FramePack and standard autoregressive rollout for the
-            same transformer sequence length.
+            <u>long memory.</u> It leverages a hierarchical latent space and
+            coarse-to-fine rollout to produce videos with long-range consistency,
+            <i>without</i> requiring a massive transformer sequence length.
           </p>
         </div>
       </div>
@@ -240,25 +239,24 @@
         <h2 class="section-heading">Abstract</h2>
         <p class="mt-4 leading-relaxed text-slate-700">
           Transformer-based video generative models have become increasingly
-          realistic, but long-horizon consistency remains challenging to achieve
+          realistic, but long-range consistency remains challenging to achieve
           because even a few dozen frames create impractically long sequence
           lengths. We show that this issue can be mitigated by generating video
           using coarse-to-fine rollout within a multi-scale token space. Our
-          approach is simple: first, we pre-train an adaptive autoencoder that
-          compresses each frame into a hierarchy of tokens, with levels ranging
-          from the typical latent resolution to only a handful of tokens per
-          frame. This yields a hierarchy in which the coarsest levels capture
-          the most consequential information&mdash;such as scene layout and
-          semantics&mdash;while finer levels add high-frequency appearance and
-          texture. Then, we train a video diffusion model to generate these
-          tokens using coarse-to-fine rollout. By carefully controlling the
-          level of detail at which frames are generated and used as context
-          during each rollout step, we are able to preserve long-range
-          consistency in geometry and object permanence while expending less
-          compute on long-term consistency of less perceptually relevant
-          details. We validate this approach using a custom long-horizon
-          Minecraft dataset, where it produces substantially more consistent
-          rollouts compared to strong baselines.
+          approach is simple: first, we pre-train an autoencoder that compresses
+          each frame into a hierarchy of tokens, with levels ranging from the
+          typical latent resolution to only a handful of tokens per frame. The
+          coarsest levels capture the most consequential information&mdash;such
+          as scene layout and semantics&mdash;while finer levels add
+          high-frequency appearance and texture. Then, we train a video
+          diffusion model to generate these tokens using coarse-to-fine rollout.
+          By carefully controlling the level of detail at which frames are
+          generated and used as context during each rollout step, we are able to
+          preserve long-range consistency in geometry and object permanence
+          while expending less compute on long-range consistency of less
+          perceptually relevant details. We validate this approach using a custom
+          dataset of long Minecraft videos, where it produces substantially more
+          consistent rollouts compared to strong baselines.
         </p>
       </section>
 
