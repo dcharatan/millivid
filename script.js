@@ -684,8 +684,8 @@ function fallbackCopy(text) {
       yFmt: (v) => v.toFixed(1),
       xOf: (i) => i + 1, // 768 samples -> frames 1..768
       refs: [
-        { v: data.lpips_worst, label: "Worst Possible (Random Frames)" },
-        { v: data.lpips_best, label: "Best Possible (Autoencoded Frames)" },
+        { v: data.lpips_worst, label: "Random Frames" },
+        { v: data.lpips_best, label: "Autoencoded Frames" },
       ],
     },
     fvd: {
