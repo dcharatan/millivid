@@ -91,6 +91,13 @@ html {
   background-color: #334155;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
+.btn.btn-disabled {
+  background-color: #cbd5e1;
+  color: #f1f5f9;
+  cursor: not-allowed;
+  box-shadow: none;
+  pointer-events: none;
+}
 
 /* Small secondary button (e.g. Copy BibTeX). */
 .btn-sm {
