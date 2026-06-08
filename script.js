@@ -699,7 +699,7 @@ function fallbackCopy(text) {
       refs: [
         {
           v: data.fvd_best,
-          label: "Best Possible (Autoencoded Frames)",
+          label: "Autoencoded Frames",
           below: true,
         },
       ],
