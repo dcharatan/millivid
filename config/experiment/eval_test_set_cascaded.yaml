@@ -1,0 +1,14 @@
+# @package _global_
+
+dataset:
+  path:
+    - /path/to/cascaded/latent/test/set
+  test_fraction: 1.0
+
+model:
+  image_dataset:
+    path:
+      - /path/to/image/dataset
+
+split: all
+tag: paper

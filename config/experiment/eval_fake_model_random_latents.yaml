@@ -1,0 +1,55 @@
+# @package _global_
+
+dataset:
+  # from DatasetLatentsUniversalCfg
+  name: latents_universal
+  test_fraction: 0.01
+  path:
+    - /path/to/dataset
+  strategy:
+    name: baseline
+    num_frames: 4
+  test_num_frames: 1024
+  first_denoised_frame: 256
+
+  # from LevelsCfg
+  available_num_levels: 4
+  image_shape: [256, 256]
+  patch_shape: [16, 16]
+  latent_channels: 32
+
+model:
+  # from ModelVideoGroundTruthCfg
+  name: video_ground_truth
+  decoder_path:
+    - /path/to/decoder
+  image_dataset:
+    name: images
+    path:
+      - /path/to/image/dataset
+    vis_frames_per_clip: 0
+    test_frames_per_clip: 1024
+  latent_dataset:
+    # from DatasetLatentsDenseCfg
+    name: latents_dense
+    test_fraction: 0.01
+    path:
+      - /path/to/dataset
+    train_num_frames: 86
+    test_num_frames: 1024
+
+    # from LevelsCfg
+    available_num_levels: 4
+    image_shape: [256, 256]
+    patch_shape: [16, 16]
+    latent_channels: 32
+
+  test_num_frames: 1024
+  first_denoised_frame: 256
+  mode: random_autoencoded
+
+  # from LevelsCfg
+  available_num_levels: 4
+  image_shape: [256, 256]
+  patch_shape: [16, 16]
+  latent_channels: 32

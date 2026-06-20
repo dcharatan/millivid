@@ -1,0 +1,40 @@
+data_loader:
+  train:
+    per_device_batch_size: 4
+    num_workers: 8
+    seed: 0
+  vis:
+    per_device_batch_size: 8
+    num_workers: 0
+    seed: 0
+
+training:
+  optimizer:
+    variant: adamw
+    learning_rate: 1e-4
+    weight_decay: 0.01
+  num_steps: 10_000_000
+  clip_norm: 1.0
+  warmup_steps: 2000
+  vis_interval_steps: 1000
+  checkpointing:
+    load: null
+    save_interval_steps: 1000
+    load_dataset_state: true
+    most_recent_to_keep: 5
+  profiling:
+    # Profile for duration_steps every interval_steps starting at step offset_steps.
+    wait: 10000
+    warmup: 10
+    active: 4
+    skip_first: 10
+  heartbeat_seconds: 10.0
+  find_unused_parameters: false
+
+wandb:
+  entity: scene-representation-group
+  project: vdlc
+  mode: online
+  notes: null
+
+on_existing_workspace: restore

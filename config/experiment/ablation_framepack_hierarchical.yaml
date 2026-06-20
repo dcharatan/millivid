@@ -1,0 +1,57 @@
+# @package _global_
+
+data_loader:
+  train:
+    per_device_batch_size: 48
+    num_workers: 8
+
+training:
+  optimizer:
+    variant: muon_adamw
+    learning_rate: 1e-3
+  vis_interval_steps: 10000
+
+dataset:
+  # from DatasetLatentsUniversalCfg
+  name: latents_universal
+  test_fraction: 0.01
+  path:
+    - /path/to/dataset
+  strategy: ${model.strategy}
+  test_num_frames: ${model.test_num_frames}
+  first_denoised_frame: ${model.first_denoised_frame}
+
+  # from LevelsCfg
+  available_num_levels: ${model.available_num_levels}
+  image_shape: ${model.image_shape}
+  patch_shape: ${model.patch_shape}
+  latent_channels: ${model.latent_channels}
+
+model:
+  # from ModelVideoUniversalCfg
+  name: video_universal
+  model_size: B
+  decoder_path:
+    - /path/to/decoder
+  image_dataset:
+    name: images
+    path:
+      - /path/to/image/dataset
+    vis_frames_per_clip: 0
+    test_frames_per_clip: 1024
+  sampling_steps: 50
+  shift: 1.0
+  strategy:
+    name: framepack
+    num_denoised_frames: 1
+    num_context_frames: [1, 4, 16, 64]
+  test_num_frames: 1024
+  first_denoised_frame: 256
+  guidance_dropout_probability: 0.1
+  guidance_scales: [1.0]
+
+  # from LevelsCfg
+  available_num_levels: 4
+  image_shape: [256, 256]
+  patch_shape: [16, 16]
+  latent_channels: 32

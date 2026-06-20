@@ -1,0 +1,54 @@
+# @package _global_
+
+dataset:
+  # from DatasetLatentsUniversalCfg
+  name: latents_universal
+  test_fraction: 0.01
+  path:
+    - /path/to/dataset
+  strategy:
+    name: baseline
+    num_frames: 4
+  test_num_frames: ${model.test_num_frames}
+  first_denoised_frame: ${model.first_denoised_frame}
+
+  # from LevelsCfg
+  available_num_levels: ${model.available_num_levels}
+  image_shape: ${model.image_shape}
+  patch_shape: ${model.patch_shape}
+  latent_channels: ${model.latent_channels}
+
+model:
+  # from ModelVideoGroundTruthCfg
+  name: video_ground_truth
+  decoder_path:
+    - /path/to/decoder
+  image_dataset:
+    name: images
+    path:
+      - /path/to/image/dataset
+    vis_frames_per_clip: 0
+    test_frames_per_clip: ${model.test_num_frames}
+  latent_dataset:
+    # from DatasetLatentsDenseCfg
+    name: latents_dense
+    test_fraction: 0.01
+    path:
+      - /path/to/dataset
+    train_num_frames: 86
+    test_num_frames: ${model.test_num_frames}
+
+    # from LevelsCfg
+    available_num_levels: ${model.available_num_levels}
+    image_shape: ${model.image_shape}
+    patch_shape: ${model.patch_shape}
+    latent_channels: ${model.latent_channels}
+  test_num_frames: 1024
+  first_denoised_frame: 256
+  mode: autoencoded
+
+  # from LevelsCfg
+  available_num_levels: 4
+  image_shape: [256, 256]
+  patch_shape: [16, 16]
+  latent_channels: 32

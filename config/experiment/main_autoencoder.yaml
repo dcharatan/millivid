@@ -1,0 +1,33 @@
+# @package _global_
+
+data_loader:
+  train:
+    per_device_batch_size: 224
+    num_workers: 8
+
+training:
+  optimizer:
+    variant: muon_adamw
+    learning_rate: 1e-3
+  vis_interval_steps: 1000
+
+dataset:
+  name: images
+  path:
+    - /path/to/dataset
+  vis_frames_per_clip: 1024
+  test_frames_per_clip: 1024
+
+model:
+  # from ModelAutoencoderCfg
+  name: autoencoder
+  lpips_weight: 0.05
+  encode_in_path: /path/to/image/dataset
+  encode_out_path: /path/to/latent/dataset
+  variant: adaptive
+
+  # from LevelsCfg
+  available_num_levels: 4
+  image_shape: [256, 256]
+  patch_shape: [16, 16]
+  latent_channels: 32
