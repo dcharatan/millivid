@@ -27,6 +27,7 @@
   <a href="https://github.com/dcharatan/millivid">[Code]</a>
   <a href="https://huggingface.co/charatan/millivid">[Models]</a>
   <a href="https://huggingface.co/datasets/charatan/loopcraft">[Dataset]</a>
+  <a href="https://github.com/dcharatan/loopcraft-datagen">[Data Generation Scripts]</a>
 </p>
 
 > **TL;DR:** We present a long-memory autoregressive framework for video generation. A hierarchical latent space and coarse-to-fine rollout let it stay consistent many times longer than a conventional diffusion model under the same token budget.
@@ -57,14 +58,18 @@ python3 demo.py
 
 If you want to compare MilliVid's outputs to the baselines' outputs, use `python3 demo.py --baselines` instead.
 
+## Data Generation
+
+The Loopcraft dataset was generated using a separate set of scripts that automate the collection of long Minecraft videos. If you want to generate your own data or reproduce our dataset, see the [loopcraft-datagen](https://github.com/dcharatan/loopcraft-datagen) repository.
+
 ## Code Release Progress
 
 - ✅ Pre-trained checkpoints (for main baseline comparisons)
 - ✅ Demo/inference script
 - ✅ Images and latents for test set uploaded
-- ⏳ Images and latents for training set are currently uploading
+- ✅ Training set videos uploaded
 - ❌ Training/testing instructions not yet given (will be done over the next few days)
-- ❌ Data generation scripts not yet uploaded (coming soon as well)
+- ✅ Data generation scripts uploaded ([loopcraft-datagen](https://github.com/dcharatan/loopcraft-datagen))
 
 TL;DR: If you're very eager to start experimenting with MilliVid, everything you need is here, but there may be some sharp edges. Those will be ironed out in the coming days.
 
