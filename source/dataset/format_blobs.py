@@ -1,7 +1,26 @@
 import os
+from io import BytesIO
 from pathlib import Path
 
 HEADER_BYTES = 8
+
+
+def save_blobs(path: Path, blobs: list[bytes]):
+    bytes_io = BytesIO()
+
+    # Write the header to memory.
+    offset = 0
+    for blob in blobs:
+        offset += len(blob)
+        bytes_io.write(offset.to_bytes(HEADER_BYTES, byteorder="little", signed=False))
+
+    # Write the body to memory.
+    for blob in blobs:
+        bytes_io.write(blob)
+
+    # Use a single write to transfer everything to disk.
+    with path.open("wb") as f:
+        f.write(bytes_io.getbuffer())
 
 
 def load_blobs(

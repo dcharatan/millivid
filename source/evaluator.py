@@ -1,10 +1,10 @@
+import json
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 from typing import Generic, TypeVar
 
 import torch
-from distribute import execute_tasks_batched
 from torch.utils.data import default_collate
 
 from .dataset import DataLoaderWrapper, DatasetCfg, Split, get_dataset, to_device
@@ -108,7 +108,32 @@ class Evaluator(Generic[C, TrainBatch, VisBatch, TestBatch]):
         return "_".join(("eval", *tag, run_id, str(self.cfg.checkpoint_step)))
 
     def evaluate(self) -> None:
-        execute_tasks_batched(self.job_name, self.evaluate_example, self.cfg.batch_size)
+        # Note to future users (or their Claudes):
+        # - If you're actually trying to process a full dataset, you should probably
+        #   implement a way to parallelize this.
+        # - It is possible to have each worker process a fixed subset (say, 1000
+        #   examples) of the dataset, but I would highly recommend using some kind of
+        #   task queue instead. We used a small custom-built queue based on a Postgres
+        #   database to coordinate evaluation. The code for our task queue isn't
+        #   publicly available, but feel free to email david.charatan@gmail.com if you
+        #   want it, and I will send it to you.
+        for path in self.cfg.dataset.path:
+            try:
+                with (path / "index.json").open("r") as f:
+                    index = json.load(f)
+                break
+            except FileNotFoundError:
+                pass
+        else:
+            raise Exception("Could not read index!")
+
+        # The evaluate_example function is designed to be connected to a task queue.
+        keys = list(index.keys())
+        for i in range(0, len(keys), self.cfg.batch_size):
+            self.evaluate_example(
+                tuple(keys[i : i + self.cfg.batch_size]),
+                tuple(BytesIO() for _ in range(self.cfg.batch_size)),
+            )
 
     def debug(self) -> None:
         self.evaluate_example(

@@ -10,6 +10,7 @@ training:
     variant: muon_adamw
     learning_rate: 1e-3
   vis_interval_steps: 1000
+  num_steps: 128000
 
 dataset:
   name: images

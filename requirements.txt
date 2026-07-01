@@ -2,6 +2,7 @@ av
 beartype
 black
 clean-fid
+click
 dacite
 einops
 ffmpeg-python

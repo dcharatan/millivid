@@ -479,20 +479,5 @@ class ModelAutoencoder(ConfigurableModel[ModelAutoencoderCfg, Batch, Batch, Batc
         actions = np.load((self.cfg.encode_in_path / key).with_suffix(".npy"))
         actions = torch.tensor(actions)
 
-        tag = f"{metadata.run_id}_{metadata.step}"
-        adaptive_path = self.cfg.encode_out_path / f"{tag}_adaptive/{key}.pyramid"
+        adaptive_path = self.cfg.encode_out_path / f"{key}.pyramid"
         save_pyramid(adaptive_path, latents, actions)
-
-        # Save cascaded latents, which are just level 0 latents but downscaled.
-        cascades = [
-            reduce(
-                latents[0].float(),
-                "f c (h ph) (w pw) -> f c h w",
-                "mean",
-                ph=2**i,
-                pw=2**i,
-            ).bfloat16()
-            for i, _ in enumerate(latents)
-        ]
-        cascaded_path = self.cfg.encode_out_path / f"{tag}_cascaded/{key}.pyramid"
-        save_pyramid(cascaded_path, tuple(cascades), actions)

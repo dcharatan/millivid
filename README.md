@@ -62,16 +62,43 @@ If you want to compare MilliVid's outputs to the baselines' outputs, use `python
 
 The Loopcraft dataset was generated using a separate set of scripts that automate the collection of long Minecraft videos. If you want to generate your own data or reproduce our dataset, see the [loopcraft-datagen](https://github.com/dcharatan/loopcraft-datagen) repository.
 
-## Code Release Progress
+## Training
 
-- ✅ Pre-trained checkpoints (for main baseline comparisons)
-- ✅ Demo/inference script
-- ✅ Images and latents for test set uploaded
-- ✅ Training set videos uploaded
-- ❌ Training/testing instructions not yet given (will be done over the next few days)
-- ✅ Data generation scripts uploaded ([loopcraft-datagen](https://github.com/dcharatan/loopcraft-datagen))
+1. **Data Collection:** Either download the training data [here](https://huggingface.co/datasets/charatan/loopcraft/tree/main/train_videos) or [generate your own](https://github.com/dcharatan/loopcraft-datagen).
+2. **Conversion:** Convert the frames to a format optimized for fast random access for autoencoder training:
+```bash
+python3 -m scripts.extract_frames /path/to/dataset /path/to/autoencoder/dataset
+```
+3. **Autoencoder Training:** Train the hierarchical autoencoder (8xH200 node):
+```bash
+WORKSPACE=/path/to/autoencoder/workspace torchrun --standalone --nproc_per_node=8 train.py \   
+    +experiment=main_autoencoder \
+    dataset.path=[/path/to/autoencoder/dataset]
+```
+4. **Latent Encoding:** Encode latents (any node):
+```bash
+WORKSPACE=/path/to/autoencoder/workspace torchrun --standalone --nproc_per_node=1 evaluate.py \
+    +experiment=main_autoencoder \
+    dataset.path=[/path/to/autoencoder/dataset] \
+    model.encode_in_path=[/path/to/dataset] \
+    model.encode_out_path=[/path/to/latent/dataset] \
+    checkpoint_step=128000 \
+    split=all \
+    batch_size=1
+```
+5. **Copy Index:** Copy the index to the latent dataset.
+```bash
+cp /path/to/dataset/index.json /path/to/latent/dataset/index.json
+```
+6. **Diffusion Model Training:** Train the diffusion model (8xH200 node):
+```bash
+WORKSPACE=/path/to/diffusion/workspace torchrun --standalone --nproc_per_node=8 train.py \   
+    +experiment=main_millivid \
+    model.decoder_path=[/path/to/autoencoder/checkpoint] \
+    dataset.path=[/path/to/latent/dataset]
+```
 
-TL;DR: If you're very eager to start experimenting with MilliVid, everything you need is here, but there may be some sharp edges. Those will be ironed out in the coming days.
+We recommend changing the experiment configurations to update the dataset and decoder locations rather than relying on command-line arguments.
 
 ## Useful Information for Extending MilliVid
 
