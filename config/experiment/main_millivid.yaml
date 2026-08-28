@@ -3,7 +3,7 @@
 data_loader:
   train:
     per_device_batch_size: 48
-    num_workers: 8
+    num_workers: 16
 
 training:
   optimizer:

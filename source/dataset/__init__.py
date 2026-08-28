@@ -134,6 +134,7 @@ def get_data_loader_vis(
         sampler=RandomSampler(dataset, generator=torch.Generator().manual_seed(0)),
         worker_init_fn=worker_init_fn,
         drop_last=False,
+        prefetch_factor=4,
     )
     return SingleEpochWrapper(data_loader)
 
