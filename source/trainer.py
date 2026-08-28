@@ -176,25 +176,9 @@ class Trainer(Generic[C, TrainBatch, VisBatch, TestBatch]):
                     if self.should_run(self.cfg.checkpointing.save_interval_steps):
                         self.save_checkpoint_to_workspace()
 
-                    # Log gradient statistics.
-                    with torch.no_grad():
-                        grad_norm = 0
-                        grad_num_nan = 0
-                        grad_num_inf = 0
-                        for p in self.model.parameters():
-                            if p.grad is not None:
-                                grad_norm += p.grad.norm(2).item() ** 2
-                                grad_num_nan += p.grad.isnan().sum().item()
-                                grad_num_inf += p.grad.isinf().sum().item()
-                        train_metrics |= {
-                            "grad_norm": grad_norm**0.5,
-                            "grad_num_nan": float(grad_num_nan),
-                            "grad_num_inf": float(grad_num_inf),
-                            "learning_rate": self.scheduler.get_last_lr()[0],
-                        }
-
-                    # Write the train metrics.
+                    # Compute gradient statistics and write the train metrics.
                     if is_rank_zero():
+                        train_metrics |= self.compute_grad_metrics()
                         train_metrics = {
                             f"train/{k}": np.mean(v) for k, v in train_metrics.items()
                         }
@@ -343,6 +327,24 @@ class Trainer(Generic[C, TrainBatch, VisBatch, TestBatch]):
         if interval is None or self.step == 0:
             return False
         return self.step % interval == 0
+
+    @torch.no_grad()
+    def compute_grad_metrics(self) -> dict[str, float]:
+        with record_function("grad stats"):
+            grads = [p.grad for p in self.model.parameters() if p.grad is not None]
+            norms = torch.stack(torch._foreach_norm(grads, 2))
+            grad_norm = norms.square().sum().sqrt()
+            num_nan = norms.isnan().sum()
+            num_inf = norms.isinf().sum()
+            stats = torch.stack([grad_norm, num_nan.float(), num_inf.float()])
+            grad_norm, num_nan, num_inf = stats.tolist()
+
+        return {
+            "grad_norm": grad_norm,
+            "grad_num_nan": num_nan,
+            "grad_num_inf": num_inf,
+            "learning_rate": self.scheduler.get_last_lr()[0],
+        }
 
     @property
     def profiler(self) -> profile:
