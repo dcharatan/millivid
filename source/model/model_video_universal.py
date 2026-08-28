@@ -109,7 +109,6 @@ class ModelVideoUniversal(
     @torch.compile(
         fullgraph=True,
         dynamic=False,
-        mode="reduce-overhead",
         disable=not os.getenv("USE_TORCH_COMPILE", False),
     )
     def train_step(self, batch: Batch) -> TrainStepOutput:
