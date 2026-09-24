@@ -19,7 +19,7 @@
   <sup>*</sup>equal contribution
 </p>
 
-<h3 align="center">arXiv 2026</h3>
+<h3 align="center">to appear at NeurIPS 2026</h3>
 
 <p align="center">
   <a href="https://davidcharatan.com/millivid/">[Project Page]</a>
